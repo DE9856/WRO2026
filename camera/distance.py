@@ -1,14 +1,41 @@
-FOCAL_LENGTH = 700
+# =====================================
+# DISTANCE ESTIMATION VIA SIMILAR TRIANGLES
+# =====================================
+#
+# WRO pillar dimensions:
+#   50 x 50 x 100 mm
+#
+# Width is more stable than height because:
+# - pillar top may be cropped
+# - perspective affects height more
+# - width remains visible longer
+#
+# Formula:
+#   Distance = (Real Width * Focal Length) / Pixel Width
+# =====================================
 
-REAL_PILLAR_HEIGHT = 10  # cm
+FOCAL_LENGTH = 620
 
-def estimate_distance(pixel_height):
+REAL_PILLAR_WIDTH_MM = 50.0
 
-    if pixel_height <= 0:
-        return 999
+CALIBRATION_MODE = False
 
-    distance = (
-        REAL_PILLAR_HEIGHT * FOCAL_LENGTH
-    ) / pixel_height
 
-    return round(distance, 2)
+def estimate_distance(pixel_width):
+
+    if pixel_width <= 0:
+        return float("inf")
+
+    if CALIBRATION_MODE:
+
+        print(
+            f"[CALIBRATION] pixel_width={pixel_width}"
+        )
+
+    distance_mm = (
+        REAL_PILLAR_WIDTH_MM * FOCAL_LENGTH
+    ) / pixel_width
+
+    distance_cm = distance_mm / 10.0
+
+    return round(distance_cm, 2)
