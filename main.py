@@ -6,7 +6,7 @@ from camera.contours import detect_objects
 from camera.morphology import clean_mask
 from camera.angle    import estimate_angle, compute_error
 from camera.tracker  import CentroidTracker
-from camera.fps      import FPSCounter
+from utils.fps      import FPSCounter
 from control.pid     import PIDController
 
 # =====================================
