@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRO 2026 Future Engineers — Complete Build Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Sora:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg-deep:      #010a14;
+    --bg-card:      #061220;
+    --bg-panel:     #0b1c2e;
+    --bg-hover:     #0e2035;
+    --cyan:         #00d8f0;
+    --cyan-dim:     #0099b3;
+    --cyan-faint:   rgba(0,216,240,0.07);
+    --green:        #00e676;
+    --green-faint:  rgba(0,230,118,0.07);
+    --amber:        #ffc400;
+    --amber-faint:  rgba(255,196,0,0.07);
+    --red:          #ff3d5a;
+    --red-faint:    rgba(255,61,90,0.07);
+    --purple:       #9b59f5;
+    --border:       rgba(0,216,240,0.13);
+    --border-med:   rgba(0,216,240,0.28);
+    --border-hi:    rgba(0,216,240,0.50);
+    --text-primary: #dff0fc;
+    --text-body:    #8dafc6;
+    --text-muted:   #3e6070;
+    --shadow-glow:  0 0 28px rgba(0,216,240,0.18);
+    --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
+    --radius:       6px;
+    --radius-sm:    3px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,216,240,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,216,240,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── COVER ─── */
+  .cover {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 80px 48px;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 50% 38%, rgba(0,216,240,0.09) 0%, transparent 58%);
+    animation: pulse 7s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
+
+  .cover-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 3.5px; text-transform: uppercase;
+    color: var(--cyan);
+    border: 1px solid var(--border-med);
+    padding: 7px 22px; border-radius: var(--radius-sm);
+    margin-bottom: 36px;
+    background: rgba(0,216,240,0.05);
+    position: relative; z-index: 1;
+  }
+  .cover-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(30px, 5.5vw, 58px);
+    font-weight: 900;
+    line-height: 1.08; letter-spacing: -1px;
+    color: #fff;
+    position: relative; z-index: 1;
+    margin-bottom: 16px;
+  }
+  .cover-title span { color: var(--cyan); }
+  .cover-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-body);
+    letter-spacing: 2.5px; margin-bottom: 44px;
+    position: relative; z-index: 1;
+  }
+  .cover-tags {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    position: relative; z-index: 1; margin-bottom: 56px; max-width: 720px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 5px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.025);
+    color: var(--text-body); letter-spacing: 0.8px;
+  }
+  .tag.green { border-color: rgba(0,230,118,0.4); color: var(--green); background: var(--green-faint); }
+  .tag.amber { border-color: rgba(255,196,0,0.4);  color: var(--amber); background: var(--amber-faint); }
+  .tag.red   { border-color: rgba(255,61,90,0.4);  color: var(--red);   background: var(--red-faint); }
+  .tag.purple{ border-color: rgba(155,89,245,0.4); color: var(--purple); background: rgba(155,89,245,0.06); }
+
+  .cover-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+    gap: 1px; border: 1px solid var(--border-med);
+    border-radius: var(--radius); overflow: hidden;
+    max-width: 680px; width: 100%;
+    position: relative; z-index: 1;
+    box-shadow: var(--shadow-glow);
+  }
+  .cover-stat {
+    background: var(--bg-card); padding: 22px 24px; text-align: center;
+    transition: background 0.2s;
+  }
+  .cover-stat:hover { background: var(--bg-hover); }
+  .cover-stat .val {
+    font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
+    color: var(--cyan); display: block; margin-bottom: 4px;
+  }
+  .cover-stat .lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.8px;
+  }
+
+  /* ─── TOC ─── */
+  .toc {
+    background: rgba(6,18,32,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 48px; position: sticky; top: 0; z-index: 100;
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+  }
+  .toc-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--text-muted); margin-right: 10px;
+    letter-spacing: 2.5px; text-transform: uppercase; white-space: nowrap;
+  }
+  .toc a {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-muted); text-decoration: none; padding: 5px 14px;
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    transition: all 0.2s; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  .toc a:hover { color: var(--cyan); border-color: var(--border); background: var(--cyan-faint); }
+
+  /* ─── LAYOUT ─── */
+  .content {
+    max-width: 1160px; margin: 0 auto;
+    padding: 72px 48px;
+    position: relative; z-index: 1;
+  }
+
+  .section { margin-bottom: 96px; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 18px;
+    margin-bottom: 40px;
+    padding-bottom: 18px; border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+    color: var(--cyan); background: rgba(0,216,240,0.08);
+    border: 1px solid var(--border-med); padding: 5px 12px;
+    border-radius: var(--radius-sm); letter-spacing: 2px; flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Orbitron', monospace; font-size: clamp(15px,2.5vw,21px);
+    font-weight: 700; color: #fff; letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+    color: var(--cyan); letter-spacing: 1.8px; text-transform: uppercase;
+    margin: 36px 0 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h3::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  h4 {
+    font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text-primary); margin: 24px 0 8px;
+  }
+
+  p {
+    color: var(--text-body); margin-bottom: 14px;
+    font-size: 14px; line-height: 1.8;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: rgba(0,216,240,0.07); color: var(--cyan);
+    padding: 2px 7px; border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,216,240,0.18);
+  }
+
+  /* ─── CARDS ─── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 16px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+    transition: all 0.25s; position: relative; overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .card:hover { border-color: var(--border-med); box-shadow: var(--shadow-glow); transform: translateY(-2px); }
+  .card:hover::after { opacity: 1; }
+  .card-icon { font-size: 26px; margin-bottom: 12px; }
+  .card-name {
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 600;
+    color: var(--cyan); letter-spacing: 0.8px; margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .card-desc { font-size: 13px; color: var(--text-body); line-height: 1.7; }
+  .card-spec {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-muted); margin-top: 14px;
+    border-top: 1px solid var(--border); padding-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    overflow-x: auto; border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th {
+    background: var(--bg-panel);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; color: var(--cyan);
+    text-transform: uppercase; letter-spacing: 1.8px;
+    padding: 14px 18px; text-align: left;
+    border-bottom: 1px solid var(--border-med);
+    white-space: nowrap;
+  }
+  td {
+    font-size: 13px; color: var(--text-body);
+    padding: 13px 18px;
+    border-bottom: 1px solid rgba(0,216,240,0.05);
+    vertical-align: top; line-height: 1.6;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,216,240,0.025); }
+  td strong { color: var(--text-primary); font-weight: 600; }
+  td code { font-size: 10px; }
+
+  /* ─── CALLOUTS ─── */
+  .callout {
+    border-left: 3px solid var(--cyan); background: var(--cyan-faint);
+    padding: 18px 22px; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 20px 0; font-size: 13px; line-height: 1.75;
+    color: var(--text-body);
+  }
+  .callout.warn    { border-left-color: var(--amber); background: var(--amber-faint); }
+  .callout.danger  { border-left-color: var(--red);   background: var(--red-faint); }
+  .callout.success { border-left-color: var(--green);  background: var(--green-faint); }
+  .callout-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+    color: var(--cyan);
+  }
+  .callout.warn .callout-title    { color: var(--amber); }
+  .callout.danger .callout-title  { color: var(--red); }
+  .callout.success .callout-title { color: var(--green); }
+  .callout strong { color: var(--text-primary); }
+
+  /* ─── PIN GRID ─── */
+  .pin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 16px; }
+  .pin-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .pin-card-header {
+    background: var(--bg-panel); padding: 12px 18px;
+    font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+    color: var(--cyan); letter-spacing: 1.8px;
+    border-bottom: 1px solid var(--border-med);
+  }
+  .pin-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 18px; border-bottom: 1px solid rgba(0,216,240,0.05);
+    font-size: 13px;
+  }
+  .pin-row:last-child { border-bottom: none; }
+  .pin-label { color: var(--text-body); }
+  .pin-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--cyan); background: rgba(0,216,240,0.09);
+    padding: 3px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  /* ─── FLOWCHART ─── */
+  .flowchart-wrap {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 28px;
+    overflow-x: auto; margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .flow-chain {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .flow-node {
+    background: var(--bg-panel); border: 1px solid var(--border-med);
+    border-radius: var(--radius-sm); padding: 10px 16px;
+    color: var(--text-primary); white-space: nowrap;
+    font-size: 11px; line-height: 1.4; text-align: center;
+  }
+  .flow-node .node-label { color: var(--cyan); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .flow-arrow {
+    color: var(--cyan-dim); font-size: 16px; padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  /* ─── STEPS ─── */
+  .steps { position: relative; padding-left: 36px; margin-top: 8px; }
+  .steps::before {
+    content: ''; position: absolute; left: 13px; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--cyan), var(--purple), transparent);
+    opacity: 0.35;
+  }
+  .step { position: relative; margin-bottom: 36px; }
+  .step::before {
+    content: attr(data-n);
+    position: absolute; left: -36px; top: 2px;
+    width: 26px; height: 26px;
+    background: var(--bg-card); border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm);
+    font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700;
+    color: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-title {
+    font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 8px;
+  }
+  .step p { font-size: 13px; margin-bottom: 6px; }
+
+  /* ─── DATA SECTIONS (condensed) ─── */
+  .data-section {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 30px;
+    box-shadow: var(--shadow-card);
+  }
+  .data-section + .data-section { margin-top: 16px; }
+  .data-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+    color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .data-content { font-size: 13px; color: var(--text-body); line-height: 1.8; }
+  .data-content strong { color: var(--text-primary); }
+
+  /* HSV range pills */
+  .hsv-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .hsv-pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1px solid; display: flex; align-items: center; gap: 8px;
+  }
+  .hsv-pill .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .hsv-pill.red    { color: #ff7b7b; border-color: rgba(255,100,100,0.35); background: rgba(255,60,60,0.07); }
+  .hsv-pill.green  { color: #6dffa8; border-color: rgba(0,230,118,0.35); background: rgba(0,230,118,0.07); }
+  .hsv-pill.orange { color: #ffb36a; border-color: rgba(255,160,60,0.35); background: rgba(255,140,40,0.06); }
+  .hsv-pill.blue   { color: #6ac5ff; border-color: rgba(50,150,255,0.35); background: rgba(40,120,255,0.07); }
+  .hsv-pill.magenta{ color: #f06fff; border-color: rgba(200,80,255,0.35); background: rgba(180,60,255,0.07); }
+
+  /* State machine flow */
+  .state-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+  .state-bubble {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border-med); background: var(--bg-panel);
+    color: var(--cyan); letter-spacing: 0.5px;
+  }
+  .state-bubble.special { border-color: rgba(0,230,118,0.5); color: var(--green); background: var(--green-faint); }
+  .state-arrow { color: var(--text-muted); font-size: 12px; }
+
+  /* Score breakdown */
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; margin-top: 12px; }
+  .score-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    text-align: center;
+  }
+  .score-pts {
+    font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700;
+    color: var(--cyan); display: block;
+  }
+  .score-pts.total { color: var(--green); font-size: 34px; }
+  .score-name { font-size: 12px; color: var(--text-body); margin-top: 4px; }
+  .score-detail { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+
+  /* GitHub timeline */
+  .git-timeline { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+  .git-commit {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px;
+  }
+  .git-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--cyan); flex-shrink: 0; margin-top: 5px;
+  }
+  .git-info { flex: 1; }
+  .git-when { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--amber); letter-spacing: 1px; margin-bottom: 4px; }
+  .git-desc { font-size: 13px; color: var(--text-body); }
+
+  /* Checklist */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-body); padding: 7px 0;
+    border-bottom: 1px solid rgba(0,216,240,0.04); line-height: 1.6;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '○'; color: var(--border-hi); font-size: 11px; flex-shrink: 0; margin-top: 2px;
+  }
+  .checklist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 20px; }
+  .checklist-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .checklist-card h3 { font-size: 11px; margin: 0 0 14px; }
+
+  /* PID table */
+  .pid-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 12px; margin-top: 12px; }
+  .pid-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px; text-align: center;
+  }
+  .pid-name { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--purple); }
+  .pid-range { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--cyan); margin: 6px 0 4px; }
+  .pid-desc { font-size: 11px; color: var(--text-muted); }
+
+  .speed-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .speed-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 7px 16px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg-panel);
+  }
+  .speed-chip span { color: var(--cyan); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 48px; text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-muted); letter-spacing: 1px;
+    position: relative; z-index: 1; line-height: 2;
+  }
+
+  @media (max-width: 640px) {
+    .content { padding: 48px 20px; }
+    .toc { padding: 12px 20px; }
+    .cover { padding: 48px 20px; }
+    .flow-chain { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ COVER ═══════════════════════ -->
+<section class="cover">
+  <span class="cover-badge">WRO 2026 · Future Engineers · India</span>
+  <h1 class="cover-title">SELF-DRIVING <span>CAR</span><br>BUILD GUIDE</h1>
+  <p class="cover-subtitle">RASPBERRY PI 4B · ARDUINO UNO · OPENCV PIPELINE</p>
+  <div class="cover-tags">
+    <span class="tag green">✓ Rule-Compliant</span>
+    <span class="tag">Ackermann Steering</span>
+    <span class="tag amber">Max 300×200×300 mm</span>
+    <span class="tag">Max 1.5 kg</span>
+    <span class="tag red">No Wireless During Round</span>
+    <span class="tag purple">30 pts Documentation</span>
+    <span class="tag">3-Lap Challenge</span>
+    <span class="tag green">Age 14–22</span>
+    <span class="tag green">✓ NO caster · Single drive unit</span>
+  </div>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="val">122</span><span class="lbl">Max Points</span></div>
+    <div class="cover-stat"><span class="val">3 min</span><span class="lbl">Round Time</span></div>
+    <div class="cover-stat"><span class="val">8 GB</span><span class="lbl">Pi 4B RAM</span></div>
+    <div class="cover-stat"><span class="val">35–70 FPS</span><span class="lbl">Optimized Pipeline</span></div>
+    <div class="cover-stat"><span class="val">8–18 ms</span><span class="lbl">Pipeline Latency</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ TOC ═══════════════════════ -->
+<nav class="toc">
+  <span class="toc-label">Jump to →</span>
+  <a href="#s1">01 Components</a>
+  <a href="#s2">02 BOM</a>
+  <a href="#s3">03 Architecture</a>
+  <a href="#s4">04 Wiring</a>
+  <a href="#s5">05 Build</a>
+  <a href="#s6">06 Vision</a>
+  <a href="#s6a">06A World Model</a>
+  <a href="#s7">07 State Machine</a>
+  <a href="#s8">08 PID</a>
+  <a href="#s9">09 Parking</a>
+  <a href="#s10">10 Scoring</a>
+  <a href="#s11">11 GitHub</a>
+  <a href="#s12">12 Checklist</a>
+  <a href="#rules">📜 Rules Matrix</a>
+</nav>
+
+<div class="content">
+
+<!-- ═══════════════════════ S1: COMPONENTS ═══════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Component Roles &amp; Selection (WRO Compliant)</h2>
+  </div>
+
+  <h3>🧠 Computing Layer</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🍓</div>
+      <div class="card-name">Raspberry Pi 4 Model B — 8 GB</div>
+      <div class="card-desc">Main single-board computer. Runs the OpenCV vision pipeline and Python state machine. Sends steering angle and speed commands to Arduino via USB serial at 115200 baud.</div>
+      <div class="card-spec">Quad-core Cortex-A72 @ 1.8 GHz · 8 GB LPDDR4</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-name">Arduino UNO R3 — Real-Time Co-Processor</div>
+      <div class="card-desc">Handles all time-critical I/O: servo PWM (D9), L298N single motor channel (D4, D5, D10), HC-SR04 ultrasonic, MPU-6050 over I²C, and start button ISR (D2).</div>
+      <div class="card-spec">ATmega328P @ 16 MHz · 32 KB Flash · 2 KB SRAM</div>
+    </div>
+  </div>
+
+  <h3>⚙️ Actuation &amp; Drive — WRO Compliant</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <div class="card-name">Servo Motor — Steering</div>
+      <div class="card-desc">Controls Ackermann front steering via mechanical linkage. Driven by D9 at 50 Hz PWM, powered at 6 V from Step-Down #1. Steering range is ±25°.</div>
+      <div class="card-spec">MG996R · 4.8–7.2 V operating range</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔩</div>
+      <div class="card-name">Single DC Geared Motor + Gearbox</div>
+      <div class="card-desc">Only ONE drive motor is used (WRO 11.5 / 11.13). Both rear wheels are mechanically linked via gearbox / solid axle — no electronic differential allowed or used.</div>
+      <div class="card-spec">12 V DC · integrated gearbox · single output shaft</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎛️</div>
+      <div class="card-name">L298N — Single Channel Mode</div>
+      <div class="card-desc">Only IN1 / IN2 (direction) and ENA (PWM speed) are used. IN3, IN4, and ENB are left disconnected or tied to GND. The second channel is completely unused.</div>
+      <div class="card-spec">2 A continuous · 7.4–12 V motor input</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛞</div>
+      <div class="card-name">Front Wheels — Non-Driven, Ackermann</div>
+      <div class="card-desc">Two standard rubber wheels (NO caster, NO omni-wheels — WRO 11.4). Free-rotating on a common axle, steered via servo-driven Ackermann linkage.</div>
+      <div class="card-spec">2× rubber wheels · Ackermann linkage</div>
+    </div>
+  </div>
+
+  <h3>📡 Sensors</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📷</div>
+      <div class="card-name">Raspberry Pi Camera Module V2</div>
+      <div class="card-desc">Mounted 15–20 cm from the ground at a 15° downward tilt. Feeds the OpenCV pipeline at 15 fps for lane detection and pillar identification.</div>
+      <div class="card-spec">8 MP · 1080p30 · CSI ribbon cable</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📏</div>
+      <div class="card-name">HC-SR04 — Ultrasonic Distance</div>
+      <div class="card-desc">Mounted forward. Triggers a speed reduction when the robot is too close to the front wall. Trig on D12, Echo on D13.</div>
+      <div class="card-spec">2–400 cm range · ±3 mm accuracy</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌀</div>
+      <div class="card-name">MPU-6050 — IMU (Gyro + Accel)</div>
+      <div class="card-desc">Used for heading maintenance and bump detection. Critical during the parking manoeuvre for MPU yaw feedback when reversing into the lot.</div>
+      <div class="card-spec">I²C on A4 (SDA) / A5 (SCL) · ±2000 °/s gyro</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">〰️</div>
+      <div class="card-name">IR Line Sensor (Analog)</div>
+      <div class="card-desc">Backup sensor for detecting lap-counting lines on the track floor, in case the camera pipeline misses a line transition at high speed.</div>
+      <div class="card-spec">Analog output · adjustable sensitivity</div>
+    </div>
+  </div>
+
+  <h3>🔋 Power System</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔋</div>
+      <div class="card-name">Li-Ion / LiPo 7.4 V (2S)</div>
+      <div class="card-desc">Main power source for the motor rail. Drives the L298N directly. Also feeds both step-down converters.</div>
+      <div class="card-spec">7.4 V · min 2000 mAh recommended</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⬇️</div>
+      <div class="card-name">Step-Down #1 — 5 V ≥ 3 A</div>
+      <div class="card-desc">Logic rail for Raspberry Pi 4B and Arduino UNO. Must supply at least 3 A to avoid brownout on the Pi under heavy CPU/vision load.</div>
+      <div class="card-spec">Buck converter · 5 V regulated output</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⬇️</div>
+      <div class="card-name">Step-Down #2 — 6 V ≥ 2 A</div>
+      <div class="card-desc">Dedicated servo supply. Keeping the servo on a separate rail prevents voltage sag from steering transients affecting the Pi's logic rail.</div>
+      <div class="card-spec">Buck converter · 6 V regulated output</div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">✓ Rule Compliance — Drive &amp; Steering</div>
+    <strong>WRO 11.4:</strong> No caster / ball caster / spherical wheel. Two standard front wheels on Ackermann steering linkage.<br>
+    <strong>WRO 11.5 + 11.13:</strong> Single drive motor connected to rear axle. Both rear wheels mechanically linked. L298N wired as single-channel driver only.
+  </div>
+</section>
+
+<!-- ═══════════════════════ S2: BOM ═══════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Full Bill of Materials (BOM) — WRO Compliant</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Component</th><th>Qty</th><th>Role</th><th>Status</th><th>Est. Cost (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Raspberry Pi 4 Model B 8 GB</strong></td><td>1</td><td>Main SBC — vision + state machine</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~8,500</td></tr>
+        <tr><td>2</td><td>Raspberry Pi Camera Module V2</td><td>1</td><td>Primary vision sensor</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~1,800</td></tr>
+        <tr><td>3</td><td>Arduino UNO R3</td><td>1</td><td>Real-time co-processor</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~600</td></tr>
+        <tr><td>4</td><td><strong>Single DC Geared Motor (with gearbox)</strong></td><td>1</td><td>Rear axle drive — single motor, both wheels linked</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~600</td></tr>
+        <tr><td>5</td><td>Servo Motor (MG996R)</td><td>1</td><td>Ackermann front steering</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~350</td></tr>
+        <tr><td>6</td><td>L298N Dual H-Bridge (single channel used)</td><td>1</td><td>Single motor control (IN1/IN2/D10 only)</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~180</td></tr>
+        <tr><td>7</td><td>HC-SR04 Ultrasonic Sensor</td><td>1</td><td>Forward wall proximity</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~80</td></tr>
+        <tr><td>8</td><td>MPU-6050 IMU Module</td><td>1</td><td>Gyro/accel — heading + bump detect</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~120</td></tr>
+        <tr><td>9</td><td>IR Line Sensor (analog)</td><td>1</td><td>Backup lap line detection</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~60</td></tr>
+        <tr><td>10</td><td>Li-Ion Battery Pack 7.4 V 2S LiPo</td><td>1</td><td>Motor rail power</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~900</td></tr>
+        <tr><td>11</td><td>DC Step-Down 5 V ≥ 3 A</td><td>1</td><td>Logic rail: Pi + Arduino</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~150</td></tr>
+        <tr><td>12</td><td>DC Step-Down 6 V ≥ 2 A</td><td>1</td><td>Servo motor supply</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~150</td></tr>
+        <tr><td>13</td><td>Robot Chassis Frame</td><td>1</td><td>Base structure</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~1,500</td></tr>
+        <tr><td>14</td><td>Robot Wheels (×4 total)</td><td>4</td><td>2 rear drive (linked) + 2 front non-driven</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~400</td></tr>
+        <tr><td>15</td><td>Front axle (Ackermann, no caster)</td><td>1 set</td><td>Steering linkage for front wheels</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~80</td></tr>
+        <tr><td>16</td><td>Rocker Power Switch</td><td>1</td><td>Main power ON (Switch 1)</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~30</td></tr>
+        <tr><td>17</td><td>Momentary Push Button</td><td>1</td><td>Start program (Switch 2)</td><td><code style="color:var(--green);">ACTIVE</code></td><td>~20</td></tr>
+        <tr>
+          <td colspan="5" style="font-family:'JetBrains Mono';font-size:10px;color:var(--cyan);letter-spacing:1px;">ESTIMATED TOTAL ACTIVE BUILD COST (COMPLIANT)</td>
+          <td><strong style="color:var(--cyan);font-family:'Orbitron',monospace;font-size:14px;">~₹16,200</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S3: ARCHITECTURE ═══════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Hierarchical Autonomous Driving Architecture</h2>
+  </div>
+  
+<div class="flowchart-wrap">
+    <div class="flow-chain">
+      <div class="flow-node"><span class="node-label">Input</span>Pi Camera</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Geometry</span>Bird's Eye Warp</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Localization</span>Section Estimation</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Optimization</span>Seat ROI Activation</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Vision</span>HSV + Contours</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Reasoning</span>Configuration Matching</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Memory</span>World-State Map</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Planning</span>Predictive Trajectory</div>
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-node"><span class="node-label">Control</span>PID + Speed Planning</div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">✓ Constrained-State Autonomous Architecture</div>
+    Instead of generic obstacle detection, the robot reconstructs legal WRO field states using symbolic seat encoding, configuration matching, temporal memory, and predictive planning.
+  </div>
+
+  </div>
+  <div class="callout success">
+    ✅ <strong>Drive:</strong> Single motor + mechanically linked rear axle (WRO 11.13).<br>
+    ✅ <strong>Steering:</strong> Ackermann with two standard front wheels. No caster (WRO 11.4).
+  </div>
+</section>
+
+<!-- ═══════════════════════ S4: WIRING ═══════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Wiring Reference (Single Channel L298N)</h2>
+  </div>
+  <div class="pin-grid">
+    <div class="pin-card">
+      <div class="pin-card-header">L298N — Single Channel</div>
+      <div class="pin-row"><span class="pin-label">Direction 1</span><span class="pin-num">D4 → IN1</span></div>
+      <div class="pin-row"><span class="pin-label">Direction 2</span><span class="pin-num">D5 → IN2</span></div>
+      <div class="pin-row"><span class="pin-label">Speed PWM</span><span class="pin-num">D10 → ENA</span></div>
+      <div class="pin-row"><span class="pin-label">Unused pins</span><span class="pin-num">IN3 / IN4 / ENB → GND</span></div>
+    </div>
+    <div class="pin-card">
+      <div class="pin-card-header">Servo &amp; Sensors</div>
+      <div class="pin-row"><span class="pin-label">Servo signal</span><span class="pin-num">D9</span></div>
+      <div class="pin-row"><span class="pin-label">HC-SR04 Trig / Echo</span><span class="pin-num">D12 / D13</span></div>
+      <div class="pin-row"><span class="pin-label">MPU-6050 I²C</span><span class="pin-num">A4 (SDA) / A5 (SCL)</span></div>
+      <div class="pin-row"><span class="pin-label">Start Button</span><span class="pin-num">D2 (INPUT_PULLUP)</span></div>
+    </div>
+    <div class="pin-card">
+      <div class="pin-card-header">Power Rails</div>
+      <div class="pin-row"><span class="pin-label">Battery to L298N</span><span class="pin-num">7.4 V direct</span></div>
+      <div class="pin-row"><span class="pin-label">Step-Down #1 out</span><span class="pin-num">5 V → Pi + Arduino</span></div>
+      <div class="pin-row"><span class="pin-label">Step-Down #2 out</span><span class="pin-num">6 V → Servo</span></div>
+      <div class="pin-row"><span class="pin-label">Main Switch</span><span class="pin-num">LiPo + → Rocker → rails</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S5: BUILD WORKFLOW ═══════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Step-by-Step Build (Rule-Compliant)</h2>
+  </div>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Chassis &amp; Steering</div>
+      <p>Mount two standard front wheels on the Ackermann linkage — <strong>no caster wheels</strong>. Mount the single DC motor to the rear axle with a mechanical linkage so both rear wheels turn together from one shaft.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">L298N Single Channel Wiring</div>
+      <p>Connect <strong>only</strong> IN1, IN2, and ENA. Leave IN3, IN4, and ENB disconnected or tied low to GND. This ensures only one motor channel is active, which satisfies WRO 11.13.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">Top Plate &amp; Sensors</div>
+      <p>Mount the Raspberry Pi, Camera (15–20 cm height, 15° downward tilt), Arduino UNO, MPU-6050, HC-SR04 (forward-facing), and IR sensor to the chassis top plate. Ensure camera has a clear, unobstructed forward view.</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Software &amp; Calibration</div>
+      <p>On the Pi: install <code>opencv-python</code>, <code>picamera2</code>, <code>pyserial</code>. Calibrate HSV colour ranges for each pillar and line colour under your practice lighting. Upload the single-motor-channel Arduino firmware and verify serial communication at 115200 baud.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S6: VISION ═══════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Vision Pipeline</h2>
+  </div>
+  <h3>🎨 HSV Colour Ranges</h3>
+  <p>All detection is done in HSV colour space. Calibrate these ranges under the actual competition lighting before each round.</p>
+  <div class="hsv-grid">
+    <div class="hsv-pill red">   <div class="dot" style="background:#ff5555;"></div> Red — H: 0–10 / 160–180</div>
+    <div class="hsv-pill green"> <div class="dot" style="background:#00e676;"></div> Green — H: 45–85</div>
+    <div class="hsv-pill orange"><div class="dot" style="background:#ff9a3c;"></div> Orange — H: 8–20</div>
+    <div class="hsv-pill blue">  <div class="dot" style="background:#5bbcff;"></div> Blue — H: 100–130</div>
+    <div class="hsv-pill magenta"><div class="dot" style="background:#e060ff;"></div> Magenta — H: 140–170</div>
+  </div>
+  <h3>📐 Edge Detection &amp; Steering</h3>
+  <div class="data-section">
+    <div class="data-label">Canny Parameters</div>
+    <div class="data-content">Low threshold: <strong>50</strong> &nbsp;|&nbsp; High threshold: <strong>150</strong></div>
+  </div>
+  <div class="data-section">
+    <div class="data-label">Pipeline Flow</div>
+    <div class="data-content">
+      Camera frame → HSV conversion → colour masking → Canny edge detection → Hough line transform → lateral error calculation → PID steering correction → serial command to Arduino
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ S6A: WORLD MODEL ═══════════════════════ -->
+<section class="section" id="s6a">
+  <div class="section-header">
+    <span class="section-num">06A</span>
+    <h2 class="section-title">Track Intelligence & World Modeling</h2>
+  </div>
+
+  <h3>🧠 Constrained-State Environment Model</h3>
+  <p>
+    WRO 2026 does not use arbitrary obstacle placement.
+    Each straight section contains one of 36 predefined legal configurations.
+    The robot therefore performs finite-state configuration recognition instead of unrestricted scene understanding.
+  </p>
+
+  <div class="callout success">
+    <div class="callout-title">✓ Major Architectural Advantage</div>
+    The robot solves:
+    <strong>“Which legal WRO configuration currently exists?”</strong>
+    instead of generic object detection.
+  </div>
+
+  <h3>🎴 Seat-State Encoding</h3>
+
+  <div class="data-section">
+    <div class="data-label">Symbolic Representation</div>
+    <div class="data-content">
+<pre>
+0 = Empty
+1 = Red Pillar
+2 = Green Pillar
+
+Example:
+[0,1,0,2,0,1]
+</pre>
+    </div>
+  </div>
+
+  <h3>🗺️ Global World-State Memory</h3>
+
+  <div class="data-section">
+    <div class="data-label">Persistent Track Reconstruction</div>
+    <div class="data-content">
+<pre>
+world_state = {
+  section_1: card_17,
+  section_2: card_4,
+  section_3: card_22,
+  section_4: card_31,
+  parking_section: section_2
+}
+</pre>
+    </div>
+  </div>
+
+  <h3>🚀 Lap-Based Intelligence</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Lap</th>
+          <th>Objective</th>
+          <th>Strategy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Lap 1</strong></td>
+          <td>Exploration + Mapping</td>
+          <td>Build world-state model cautiously.</td>
+        </tr>
+
+        <tr>
+          <td><strong>Lap 2</strong></td>
+          <td>Validation</td>
+          <td>Confirm configurations and optimize path.</td>
+        </tr>
+
+        <tr>
+          <td><strong>Lap 3</strong></td>
+          <td>Aggressive Speed Run</td>
+          <td>Use predictive driving and remembered geometry.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>⚡ Raspberry Pi Optimization Strategy</h3>
+
+  <div class="card-grid">
+
+    <div class="card">
+      <div class="card-name">ROI-Based Processing</div>
+      <div class="card-desc">
+        Only predefined seat regions are processed instead of the entire frame.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Deterministic Geometry</div>
+      <div class="card-desc">
+        Lightweight OpenCV geometry operations replace heavy deep neural inference.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Predictive Planning</div>
+      <div class="card-desc">
+        Known future configurations reduce reactive steering oscillation.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Expected Runtime</div>
+    Estimated runtime on Raspberry Pi 4B:
+    <strong>35–70 FPS</strong> with approximately
+    <strong>8–18 ms</strong> total pipeline latency.
+  </div>
+
+</section>
+
+<!-- ═══════════════════════ S7: STATE MACHINE ═══════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">State Machine</h2>
+  </div>
+  <p>The robot operates through five distinct states. Transitions are triggered by lap count, sensor events, and image-based detections.</p>
+  <div class="state-flow">
+    <div class="state-bubble">WAIT</div>
+    <div class="state-arrow">→</div>
+    <div class="state-bubble">LOCALIZE</div>
+    <div class="state-arrow">→</div>
+    <div class="state-bubble">MAP_BUILD</div>
+    <div class="state-arrow">→</div>
+    <div class="state-bubble">PREDICTIVE_DRIVE</div>
+    <div class="state-arrow">→ (after 3 laps)</div>
+    <div class="state-bubble">PARK_SEEK</div>
+    <div class="state-arrow">→</div>
+    <div class="state-bubble">PARK_EXEC</div>
+    <div class="state-arrow">→</div>
+    <div class="state-bubble special">DONE ✓</div>
+  </div>
+  <div style="margin-top:20px;" class="data-section">
+    <div class="data-label">State Descriptions</div>
+    <div class="data-content">
+      <strong>WAIT</strong> — Robot is placed in start zone. Holds until start button pressed.<br>
+      <strong>OPEN_DRIVE</strong> — Lane-following mode for Open Challenge (no pillars).<br>
+      <strong>OBS_DRIVE</strong> — Obstacle Challenge mode: pillar detection active, passes red right, green left.<br>
+      <strong>PARK_SEEK</strong> — After 3 laps (24 sections counted), searches for two magenta parking markers.<br>
+      <strong>PARK_EXEC</strong> — Executes the parking manoeuvre using MPU yaw feedback.<br>
+      <strong>DONE</strong> — Motors stopped. Robot fully inside parking lot.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S8: PID ═══════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2 class="section-title">PID Tuning</h2>
+  </div>
+  <p>The PID controller converts the lateral error (from Hough lines or pillar offset) into a servo steering angle. Tune in order: Kp first, then Kd, then Ki.</p>
+  <div class="pid-grid">
+    <div class="pid-card">
+      <div class="pid-name">Kp</div>
+      <div class="pid-range">0.03 – 0.05</div>
+      <div class="pid-desc">Proportional gain. Controls how aggressively the robot steers toward the target line.</div>
+    </div>
+    <div class="pid-card">
+      <div class="pid-name">Kd</div>
+      <div class="pid-range">0.005 – 0.015</div>
+      <div class="pid-desc">Derivative gain. Dampens oscillation, especially on straight sections.</div>
+    </div>
+    <div class="pid-card">
+      <div class="pid-name">Ki</div>
+      <div class="pid-range">0.0001 – 0.001</div>
+      <div class="pid-desc">Integral gain. Corrects persistent steady-state offset. Keep small to avoid wind-up.</div>
+    </div>
+  </div>
+  
+<h3>🧠 Dynamic Speed Planning</h3>
+
+<div class="callout success">
+  <div class="callout-title">Confidence-Based Speed Control</div>
+  Speed dynamically changes according to:
+  confidence, curvature, known section geometry, obstacle certainty, and lap number.
+</div>
+
+<h3>🚀 Speed Schedule</h3>
+
+  <div class="speed-grid">
+    <div class="speed-chip">Cruise: <span>PWM 180</span></div>
+    <div class="speed-chip">Corner / Near Wall: <span>PWM 120</span></div>
+    <div class="speed-chip">Parking: <span>PWM 90</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S9: PARKING ═══════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Parking Strategy</h2>
+  </div>
+  <div class="steps">
+    <div class="step" data-n="1">
+      <div class="step-title">Detect Magenta Markers</div>
+      <p>The camera pipeline uses HSV masking (H: 140–170) to detect two magenta markers on either side of the parking lot entrance.</p>
+    </div>
+    <div class="step" data-n="2">
+      <div class="step-title">Align Centre</div>
+      <p>The robot adjusts its lateral position so the midpoint between the two markers is centred in the camera frame.</p>
+    </div>
+    <div class="step" data-n="3">
+      <div class="step-title">Drive Past Markers</div>
+      <p>Robot moves forward until it has fully passed the marker line (the rear axle clears the lot entrance).</p>
+    </div>
+    <div class="step" data-n="4">
+      <div class="step-title">Reverse with MPU Feedback</div>
+      <p>Reverses into the lot using MPU-6050 yaw angle to keep straight. Stops when both rear wheels are fully inside the lot — verified by wheel position difference ≤ 2 cm (parallel).</p>
+    </div>
+  </div>
+  <div class="callout warn">
+    <div class="callout-title">⚠️ Rule 9.24.7 — Markers Cannot Be Touched</div>
+    The HSV mask is also used to detect proximity to markers. If a marker gets too close to the robot edge, the motor stops immediately to avoid a penalty.
+  </div>
+</section>
+
+<!-- ═══════════════════════ S10: SCORING ═══════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2 class="section-title">Scoring Breakdown</h2>
+  </div>
+  <div class="score-grid">
+    <div class="score-card">
+      <span class="score-pts">30</span>
+      <div class="score-name">Open Challenge</div>
+      <div class="score-detail">24 sections + 3 laps + stop in finish section</div>
+    </div>
+    <div class="score-card">
+      <span class="score-pts">62</span>
+      <div class="score-name">Obstacle Challenge</div>
+      <div class="score-detail">Sections + laps + pillar obedience + parking</div>
+    </div>
+    <div class="score-card">
+      <span class="score-pts">30</span>
+      <div class="score-name">Engineering Journal</div>
+      <div class="score-detail">5 criteria: mobility, power, software, systems, reproducibility</div>
+    </div>
+    <div class="score-card" style="border-color:var(--border-med);">
+      <span class="score-pts total">122</span>
+      <div class="score-name">Maximum Total</div>
+      <div class="score-detail">Our design achieves all scoring elements</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ S11: GITHUB ═══════════════════════ -->
+<section class="section" id="s11">
+  <div class="section-header">
+    <span class="section-num">11</span>
+    <h2 class="section-title">GitHub Repository Requirements</h2>
+  </div>
+  <div class="git-timeline">
+    <div class="git-commit">
+      <div class="git-dot"></div>
+      <div class="git-info">
+        <div class="git-when">≥ 2 MONTHS BEFORE COMPETITION</div>
+        <div class="git-desc">Initial commit — minimum <strong>⅕ ... (10 KB left)
