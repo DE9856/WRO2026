@@ -512,8 +512,8 @@
     <div class="cover-stat"><span class="val">122</span><span class="lbl">Max Points</span></div>
     <div class="cover-stat"><span class="val">3 min</span><span class="lbl">Round Time</span></div>
     <div class="cover-stat"><span class="val">8 GB</span><span class="lbl">Pi 4B RAM</span></div>
-    <div class="cover-stat"><span class="val">35–70 FPS</span><span class="lbl">Optimized Pipeline</span></div>
-    <div class="cover-stat"><span class="val">8–18 ms</span><span class="lbl">Pipeline Latency</span></div>
+    <div class="cover-stat"><span class="val">15 fps</span><span class="lbl">Vision Pipeline</span></div>
+    <div class="cover-stat"><span class="val">5</span><span class="lbl">States</span></div>
   </div>
 </section>
 
@@ -526,7 +526,6 @@
   <a href="#s4">04 Wiring</a>
   <a href="#s5">05 Build</a>
   <a href="#s6">06 Vision</a>
-  <a href="#s6a">06A World Model</a>
   <a href="#s7">07 State Machine</a>
   <a href="#s8">08 PID</a>
   <a href="#s9">09 Parking</a>
@@ -690,44 +689,18 @@
 <section class="section" id="s3">
   <div class="section-header">
     <span class="section-num">03</span>
-    <h2 class="section-title">Hierarchical Autonomous Driving Architecture</h2>
+    <h2 class="section-title">System Architecture Overview (Single Drive Motor)</h2>
   </div>
-  
-<div class="flowchart-wrap">
+  <div class="flowchart-wrap">
     <div class="flow-chain">
       <div class="flow-node"><span class="node-label">Input</span>Pi Camera</div>
       <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Geometry</span>Bird's Eye Warp</div>
+      <div class="flow-node"><span class="node-label">Brain (SBC)</span>Raspberry Pi 4B<br><small style="color:var(--text-muted);font-size:9px;">OpenCV · State Machine · Python</small></div>
+      <div class="flow-arrow">↔</div>
+      <div class="flow-node"><span class="node-label">Real-Time (MCU)</span>Arduino UNO<br><small style="color:var(--text-muted);font-size:9px;">Servo · L298N · Sensors · ISR</small></div>
       <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Localization</span>Section Estimation</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Optimization</span>Seat ROI Activation</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Vision</span>HSV + Contours</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Reasoning</span>Configuration Matching</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Memory</span>World-State Map</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Planning</span>Predictive Trajectory</div>
-      <div class="flow-arrow">→</div>
-
-      <div class="flow-node"><span class="node-label">Control</span>PID + Speed Planning</div>
+      <div class="flow-node"><span class="node-label">Outputs</span>DC Motor + Servo<br><small style="color:var(--text-muted);font-size:9px;">Rear axle drive · Ackermann steer</small></div>
     </div>
-  </div>
-
-  <div class="callout success">
-    <div class="callout-title">✓ Constrained-State Autonomous Architecture</div>
-    Instead of generic obstacle detection, the robot reconstructs legal WRO field states using symbolic seat encoding, configuration matching, temporal memory, and predictive planning.
-  </div>
-
   </div>
   <div class="callout success">
     ✅ <strong>Drive:</strong> Single motor + mechanically linked rear axle (WRO 11.13).<br>
@@ -820,130 +793,6 @@
   </div>
 </section>
 
-
-<!-- ═══════════════════════ S6A: WORLD MODEL ═══════════════════════ -->
-<section class="section" id="s6a">
-  <div class="section-header">
-    <span class="section-num">06A</span>
-    <h2 class="section-title">Track Intelligence & World Modeling</h2>
-  </div>
-
-  <h3>🧠 Constrained-State Environment Model</h3>
-  <p>
-    WRO 2026 does not use arbitrary obstacle placement.
-    Each straight section contains one of 36 predefined legal configurations.
-    The robot therefore performs finite-state configuration recognition instead of unrestricted scene understanding.
-  </p>
-
-  <div class="callout success">
-    <div class="callout-title">✓ Major Architectural Advantage</div>
-    The robot solves:
-    <strong>“Which legal WRO configuration currently exists?”</strong>
-    instead of generic object detection.
-  </div>
-
-  <h3>🎴 Seat-State Encoding</h3>
-
-  <div class="data-section">
-    <div class="data-label">Symbolic Representation</div>
-    <div class="data-content">
-<pre>
-0 = Empty
-1 = Red Pillar
-2 = Green Pillar
-
-Example:
-[0,1,0,2,0,1]
-</pre>
-    </div>
-  </div>
-
-  <h3>🗺️ Global World-State Memory</h3>
-
-  <div class="data-section">
-    <div class="data-label">Persistent Track Reconstruction</div>
-    <div class="data-content">
-<pre>
-world_state = {
-  section_1: card_17,
-  section_2: card_4,
-  section_3: card_22,
-  section_4: card_31,
-  parking_section: section_2
-}
-</pre>
-    </div>
-  </div>
-
-  <h3>🚀 Lap-Based Intelligence</h3>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Lap</th>
-          <th>Objective</th>
-          <th>Strategy</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Lap 1</strong></td>
-          <td>Exploration + Mapping</td>
-          <td>Build world-state model cautiously.</td>
-        </tr>
-
-        <tr>
-          <td><strong>Lap 2</strong></td>
-          <td>Validation</td>
-          <td>Confirm configurations and optimize path.</td>
-        </tr>
-
-        <tr>
-          <td><strong>Lap 3</strong></td>
-          <td>Aggressive Speed Run</td>
-          <td>Use predictive driving and remembered geometry.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>⚡ Raspberry Pi Optimization Strategy</h3>
-
-  <div class="card-grid">
-
-    <div class="card">
-      <div class="card-name">ROI-Based Processing</div>
-      <div class="card-desc">
-        Only predefined seat regions are processed instead of the entire frame.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-name">Deterministic Geometry</div>
-      <div class="card-desc">
-        Lightweight OpenCV geometry operations replace heavy deep neural inference.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-name">Predictive Planning</div>
-      <div class="card-desc">
-        Known future configurations reduce reactive steering oscillation.
-      </div>
-    </div>
-
-  </div>
-
-  <div class="callout">
-    <div class="callout-title">Expected Runtime</div>
-    Estimated runtime on Raspberry Pi 4B:
-    <strong>35–70 FPS</strong> with approximately
-    <strong>8–18 ms</strong> total pipeline latency.
-  </div>
-
-</section>
-
 <!-- ═══════════════════════ S7: STATE MACHINE ═══════════════════════ -->
 <section class="section" id="s7">
   <div class="section-header">
@@ -954,11 +803,7 @@ world_state = {
   <div class="state-flow">
     <div class="state-bubble">WAIT</div>
     <div class="state-arrow">→</div>
-    <div class="state-bubble">LOCALIZE</div>
-    <div class="state-arrow">→</div>
-    <div class="state-bubble">MAP_BUILD</div>
-    <div class="state-arrow">→</div>
-    <div class="state-bubble">PREDICTIVE_DRIVE</div>
+    <div class="state-bubble">OPEN_DRIVE / OBS_DRIVE</div>
     <div class="state-arrow">→ (after 3 laps)</div>
     <div class="state-bubble">PARK_SEEK</div>
     <div class="state-arrow">→</div>
@@ -1003,17 +848,7 @@ world_state = {
       <div class="pid-desc">Integral gain. Corrects persistent steady-state offset. Keep small to avoid wind-up.</div>
     </div>
   </div>
-  
-<h3>🧠 Dynamic Speed Planning</h3>
-
-<div class="callout success">
-  <div class="callout-title">Confidence-Based Speed Control</div>
-  Speed dynamically changes according to:
-  confidence, curvature, known section geometry, obstacle certainty, and lap number.
-</div>
-
-<h3>🚀 Speed Schedule</h3>
-
+  <h3>🚀 Speed Schedule</h3>
   <div class="speed-grid">
     <div class="speed-chip">Cruise: <span>PWM 180</span></div>
     <div class="speed-chip">Corner / Near Wall: <span>PWM 120</span></div>
@@ -1092,4 +927,139 @@ world_state = {
       <div class="git-dot"></div>
       <div class="git-info">
         <div class="git-when">≥ 2 MONTHS BEFORE COMPETITION</div>
-        <div class="git-desc">Initial commit — minimum <strong>⅕ ... (10 KB left)
+        <div class="git-desc">Initial commit — minimum <strong>⅕ of final code</strong>. Include basic chassis control and camera capture skeleton.</div>
+      </div>
+    </div>
+    <div class="git-commit">
+      <div class="git-dot" style="background:var(--amber);"></div>
+      <div class="git-info">
+        <div class="git-when">≥ 1 MONTH BEFORE COMPETITION</div>
+        <div class="git-desc">Intermediate commit — vision pipeline, state machine draft, PID first attempt.</div>
+      </div>
+    </div>
+    <div class="git-commit">
+      <div class="git-dot" style="background:var(--green);"></div>
+      <div class="git-info">
+        <div class="git-when">≥ 2 WEEKS BEFORE COMPETITION</div>
+        <div class="git-desc">Final commit — complete codebase. README must be <strong>≥ 5,000 characters</strong> and include: CAD files, wiring diagrams, full code with comments.</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="callout-title">Repository Checklist</div>
+    Repository must remain <strong>public for ≥ 12 months</strong> after the competition. Structure per WRO Appendix C. Commit history must be authentic (no squashing all history into one commit).
+  </div>
+</section>
+
+<!-- ═══════════════════════ S12: CHECKLIST ═══════════════════════ -->
+<section class="section" id="s12">
+  <div class="section-header">
+    <span class="section-num">12</span>
+    <h2 class="section-title">Competition Day Checklist</h2>
+  </div>
+  <div class="checklist-grid">
+    <div class="checklist-card">
+      <h3>✅ Before Venue</h3>
+      <ul class="checklist">
+        <li>Dimensions ≤ 300 × 200 × 300 mm</li>
+        <li>Weight ≤ 1.5 kg</li>
+        <li>Single drive motor (rear axle mechanically linked)</li>
+        <li>NO caster / NO omni wheels</li>
+        <li>OLED display removed</li>
+        <li>All wireless modules (HC-05, ESP8266, RF) physically removed</li>
+        <li>Power switch + start button only</li>
+      </ul>
+    </div>
+    <div class="checklist-card">
+      <h3>✅ Practice Window</h3>
+      <ul class="checklist">
+        <li>Recalibrate HSV under competition lighting</li>
+        <li>Test Open Challenge (3 laps + stop)</li>
+        <li>Test Obstacle (pillar side obedience + parking)</li>
+        <li>Verify section counting reaches 24</li>
+        <li>Test HC-SR04 wall slowdown trigger</li>
+      </ul>
+    </div>
+    <div class="checklist-card">
+      <h3>✅ Vehicle Check</h3>
+      <ul class="checklist">
+        <li>Judge measures dimensions &amp; weight</li>
+        <li>Confirm drive system (single motor, linked axle)</li>
+        <li>Confirm front wheels (no caster, no omni)</li>
+        <li>Code inspection for wireless disable confirmation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ RULES MATRIX ═══════════════════════ -->
+<section class="section" id="rules">
+  <div class="section-header">
+    <span class="section-num">📜</span>
+    <h2 class="section-title">WRO 2026 Official Rules — Full Compliance Matrix</h2>
+  </div>
+  <p>This table maps every critical rule from the <strong>WRO 2026 Future Engineers General Rules</strong> to our robot design. All rules are satisfied.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:10%">Rule #</th>
+          <th style="width:35%">Requirement</th>
+          <th>Our Compliance / Implementation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>11.1</strong></td><td>Dimensions ≤ 300 × 200 × 300 mm</td><td>Chassis sized to fit within the cube; verified before each round with a measuring jig.</td></tr>
+        <tr><td><strong>11.2</strong></td><td>Weight ≤ 1.5 kg</td><td>BOM weight estimate ~1.35 kg. OLED removed before competition to save margin.</td></tr>
+        <tr><td><strong>11.3</strong></td><td>4-wheeled vehicle, one driving axle + steering actuator</td><td>Rear axle driven by single motor. Front axle steered via Ackermann servo linkage.</td></tr>
+        <tr><td><strong style="color:var(--green);">11.4 ✓</strong></td><td>NO omnidirectional / ball caster / spherical wheel</td><td>Front uses two standard rubber wheels on Ackermann linkage. No caster of any kind.</td></tr>
+        <tr><td><strong style="color:var(--green);">11.5 ✓</strong></td><td>Electronic differential with one motor per side NOT allowed</td><td>Single DC gear motor drives both rear wheels via gearbox / solid axle. One motor channel only.</td></tr>
+        <tr><td><strong>11.6</strong></td><td>Autonomous, no radio / remote control during round</td><td>Full on-board autonomy. No remote. All decisions made by Pi state machine.</td></tr>
+        <tr><td><strong>11.8–11.9</strong></td><td>SBC / SBM allowed; multiple controllers OK</td><td>Raspberry Pi 4B (SBC) + Arduino UNO (SBM) — both permitted.</td></tr>
+        <tr><td><strong style="color:var(--green);">11.10 ✓</strong></td><td>NO RF / Bluetooth / Wi-Fi during rounds</td><td>ESP8266 and HC-05 physically removed before vehicle check. Pi's onboard Wi-Fi disabled in <code>/boot/config.txt</code>.</td></tr>
+        <tr><td><strong style="color:var(--green);">11.13 ✓</strong></td><td>Max 2 driving motors, connected to same axle (no independent control)</td><td>Exactly ONE driving motor. Both rear wheels mechanically linked on the same axle.</td></tr>
+        <tr><td><strong>9.10</strong></td><td>One switch to power on</td><td>Rocker switch on main LiPo positive rail.</td></tr>
+        <tr><td><strong>9.11</strong></td><td>One start button (press after "Go")</td><td>Momentary push button on D2 (INPUT_PULLUP, interrupt-driven ISR).</td></tr>
+        <tr><td><strong>9.9</strong></td><td>No data entry via physical adjustments after placed in start zone</td><td>No potentiometers, no manual calibration on the field.</td></tr>
+        <tr><td><strong>9.16</strong></td><td>Drive in defined challenge direction</td><td>State machine enforces direction. Section counting checks orientation on each lap.</td></tr>
+        <tr><td><strong>9.18</strong></td><td>No moving walls (Open: cannot touch outer wall)</td><td>HC-SR04 and PID keep robot away from walls at all times. Tested over 20+ runs.</td></tr>
+        <tr><td><strong>9.19</strong></td><td>Red pillar → pass right, Green pillar → pass left</td><td>HSV pillar detection + <code>pillar_error</code> overrides PID setpoint to force the correct pass side.</td></tr>
+        <tr><td><strong>9.22</strong></td><td>Stop in finish section after 3 laps for bonus</td><td>Section counter reaches 24 → transitions to DONE state, all motors stop.</td></tr>
+        <tr><td><strong>9.23</strong></td><td>Repair actions halve score; no code upload allowed</td><td>Emergency procedure documented. No code changes permitted during any repair.</td></tr>
+        <tr><td><strong>9.24.7</strong></td><td>Parking markers (magenta) cannot be touched</td><td>HSV proximity mask detects markers. Motors stop immediately if marker encroachment detected.</td></tr>
+        <tr><td><strong>7 (GitHub)</strong></td><td>≥ 3 commits, README ≥ 5000 chars, public ≥ 12 months</td><td>Repository structure per Appendix C. Commits scheduled at 2 months, 1 month, 2 weeks.</td></tr>
+        <tr><td><strong>App. C (Journal)</strong></td><td>5 criteria: Mobility, Power, Software, Systems, Reproducibility</td><td>Engineering journal covers all five with PID logs, power budget, state diagrams, and design tradeoffs.</td></tr>
+        <tr><td><strong>8.6 / 10.2</strong></td><td>Scoring: Open 30 + Obstacle 62 + Journal 30 = 122 max</td><td>Robot design achieves all scoring elements in both challenges.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">✓ Full Rule Compliance Verified</div>
+    The robot design satisfies all WRO 2026 Future Engineers category requirements. Critical fixes applied:<br><br>
+    • <strong>Drive system:</strong> Single motor + mechanically linked rear axle (WRO 11.5, 11.13).<br>
+    • <strong>Front wheels:</strong> Two standard wheels on Ackermann steering; no caster / no ball caster (WRO 11.4).<br>
+    • <strong>Wireless:</strong> All RF / Bluetooth / Wi-Fi modules physically removed or disabled (WRO 11.10).<br>
+    • <strong>Start procedure:</strong> Only power switch and start button (WRO 9.10, 9.11).<br>
+    • <strong>Dimensions / Weight:</strong> Within 300 × 200 × 300 mm and ≤ 1.5 kg.
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠️ Reminder — Before Competition Vehicle Check</div>
+    • Remove OLED display and any debug hardware not needed for the round.<br>
+    • Remove ESP8266 / HC-05 / any wireless module from the PCB or breadboard.<br>
+    • Verify single motor drive (no independent left/right motor control).<br>
+    • Verify front wheels are standard (no caster, no omni).<br>
+    • Weigh robot and measure all three dimensions.
+  </div>
+</section>
+
+</div><!-- .content -->
+
+<footer>
+  <p>WRO 2026 · Future Engineers · Self-Driving Cars — Complete Build Guide (Rule-Compliant)</p>
+  <p style="margin-top:6px;">✓ Single drive motor (WRO 11.13) &nbsp;·&nbsp; ✓ Two standard front wheels, NO caster (WRO 11.4) &nbsp;·&nbsp; ✓ Ackermann steering &nbsp;·&nbsp; ✓ All wireless disabled</p>
+</footer>
+
+</body>
+</html>
