@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRO 2026 — Hardware Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0c0b09;
+    --bg-raised:  #141210;
+    --panel:      #191612;
+    --panel-hi:   #1f1b16;
+    --copper:     #c9793f;
+    --copper-hi:  #ff9d52;
+    --copper-dim: rgba(201,121,63,0.14);
+    --gold:       #e0b364;
+    --teal:       #5fd9c4;
+    --teal-dim:   rgba(95,217,196,0.12);
+    --red:        #e2564f;
+    --red-dim:    rgba(226,86,79,0.12);
+    --border:     rgba(201,121,63,0.20);
+    --border-hi:  rgba(201,121,63,0.45);
+    --text:       #ece5d8;
+    --text-body:  #b3a897;
+    --text-dim:   #6e6355;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  /* faint trace-grid backdrop */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(circle at 3px 3px, rgba(201,121,63,0.10) 1px, transparent 1.4px);
+    background-size: 34px 34px;
+  }
+
+  a { color: var(--copper-hi); text-decoration: none; }
+
+  code {
+    font-family: var(--mono); font-size: 0.88em;
+    background: rgba(201,121,63,0.10); color: var(--gold);
+    padding: 1px 6px; border-radius: 2px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 14px 32px;
+    background: rgba(12,11,9,0.88); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: 1px; color: var(--text-dim); }
+  .topbar-brand strong { color: var(--copper-hi); font-weight: 600; }
+  .topbar-back {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px;
+    color: var(--text-body); border: 1px solid var(--border); border-radius: 3px;
+    padding: 6px 12px; transition: all .15s;
+  }
+  .topbar-back:hover { border-color: var(--border-hi); color: var(--copper-hi); }
+  .topbar-nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  .topbar-nav a {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.3px;
+    color: var(--text-body); padding: 6px 10px; border-radius: 3px; transition: all .15s;
+  }
+  .topbar-nav a:hover { background: var(--copper-dim); color: var(--copper-hi); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; z-index: 1;
+    padding: 64px 32px 48px; max-width: 1100px; margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px;
+    color: var(--copper); text-transform: uppercase; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--copper); }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px); font-weight: 700; line-height: 1.08;
+    letter-spacing: -0.5px; color: var(--text); max-width: 800px;
+  }
+  .hero h1 span { color: var(--copper-hi); }
+  .hero-sub {
+    margin-top: 20px; max-width: 640px; color: var(--text-body); font-size: 15.5px; line-height: 1.75;
+  }
+  .hero-meta {
+    margin-top: 32px; display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  }
+  .hero-meta b { color: var(--gold); font-weight: 600; }
+
+  /* legend strip */
+  .legend {
+    max-width: 1100px; margin: 0 auto 8px; padding: 0 32px;
+    position: relative; z-index: 1;
+  }
+  .legend-inner {
+    display: flex; flex-wrap: wrap; gap: 10px 22px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--panel); padding: 16px 22px;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  }
+  .legend-inner span { color: var(--text-body); }
+  .legend-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .legend-dot { width: 7px; height: 7px; border-radius: 1px; background: var(--copper); }
+
+  /* ── MAIN ── */
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 32px 80px; position: relative; z-index: 1; }
+
+  .cat {
+    margin-top: 76px;
+  }
+  .cat-head {
+    display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px;
+    border-bottom: 1px solid var(--border); padding-bottom: 16px;
+  }
+  .cat-index { font-family: var(--mono); font-size: 13px; color: var(--copper); letter-spacing: 1px; }
+  .cat-head h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.2px; }
+  .cat-desc { color: var(--text-body); font-size: 14px; margin: 14px 0 32px; max-width: 720px; }
+
+  /* ── PART CARD ── */
+  .part {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .part-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding: 22px 26px 18px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .part-id {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--bg); background: var(--copper);
+    padding: 3px 9px; border-radius: 3px; letter-spacing: 0.5px;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .part-titles { flex: 1; }
+  .part-name { font-size: 18px; font-weight: 600; color: var(--text); }
+  .part-role { font-family: var(--mono); font-size: 11px; color: var(--teal); margin-top: 4px; letter-spacing: 0.3px; }
+  .part-qty {
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 3px; padding: 4px 10px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  .part-body { padding: 20px 26px 26px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 28px; }
+  @media (max-width: 760px) { .part-body { grid-template-columns: 1fr; } }
+
+  .part-why h4, .part-specs h4 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 1.5px;
+    color: var(--copper); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .part-why p { color: var(--text-body); font-size: 14px; line-height: 1.75; margin-bottom: 10px; }
+  .part-why p:last-child { margin-bottom: 0; }
+  .part-why strong { color: var(--text); font-weight: 600; }
+
+  .spec-list { list-style: none; }
+  .spec-list li {
+    display: flex; justify-content: space-between; gap: 10px;
+    font-family: var(--mono); font-size: 12px;
+    padding: 7px 0; border-bottom: 1px solid rgba(201,121,63,0.09);
+    color: var(--text-body);
+  }
+  .spec-list li:last-child { border-bottom: none; }
+  .spec-list li span:first-child { color: var(--text-dim); }
+  .spec-list li span:last-child { color: var(--gold); text-align: right; }
+
+  /* revision / tradeoff annotation */
+  .note {
+    margin-top: 14px; padding: 12px 16px;
+    border-left: 2px solid var(--teal);
+    background: var(--teal-dim);
+    border-radius: 0 5px 5px 0;
+    font-size: 13px; color: var(--text-body); line-height: 1.7;
+  }
+  .note b { color: var(--teal); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.8px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+
+  .note.warn { border-left-color: var(--red); background: var(--red-dim); }
+  .note.warn b { color: var(--red); }
+
+  .note.pending { border-left-color: var(--gold); background: rgba(224,179,100,0.10); }
+  .note.pending b { color: var(--gold); }
+
+  /* rule compliance chip row */
+  .rule-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .rule-chip {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.4px;
+    padding: 4px 9px; border-radius: 3px;
+    background: rgba(95,217,196,0.10); color: var(--teal); border: 1px solid rgba(95,217,196,0.25);
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    margin: 44px 0; padding: 22px 26px;
+    border: 1px solid var(--border-hi); border-radius: 8px;
+    background: linear-gradient(135deg, rgba(201,121,63,0.08), rgba(201,121,63,0.02));
+  }
+  .callout h3 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px;
+    color: var(--copper-hi); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .callout p { color: var(--text-body); font-size: 14px; line-height: 1.75; }
+  .callout p + p { margin-top: 10px; }
+
+  /* ── SYSTEM MAP (power/signal flow) ── */
+  .sysmap {
+    margin-top: 30px; padding: 26px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    overflow-x: auto;
+  }
+  .sysmap-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: nowrap; }
+  .sysmap-row:last-child { margin-bottom: 0; }
+  .sysmap-label {
+    font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.6px;
+    width: 96px; flex-shrink: 0; text-transform: uppercase;
+  }
+  .sysmap-node {
+    font-family: var(--mono); font-size: 11.5px; color: var(--text);
+    background: var(--bg-raised); border: 1px solid var(--border); border-radius: 4px;
+    padding: 8px 14px; white-space: nowrap;
+  }
+  .sysmap-node.hi { border-color: var(--copper); color: var(--copper-hi); }
+  .sysmap-node.gold { border-color: rgba(224,179,100,0.5); color: var(--gold); }
+  .sysmap-arrow { color: var(--text-dim); font-size: 13px; flex-shrink: 0; }
+
+  /* ── BOM TABLE ── */
+  .bom-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.6px;
+    text-transform: uppercase; color: var(--copper); background: var(--bg-raised);
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  tbody td { padding: 11px 16px; border-bottom: 1px solid rgba(201,121,63,0.08); color: var(--text-body); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { font-family: var(--mono); color: var(--copper); font-size: 12px; }
+  tbody tr:hover { background: var(--copper-dim); }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 36px 32px; text-align: center;
+    font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.6px;
+    line-height: 2; position: relative; z-index: 1;
+  }
+  footer a { color: var(--copper); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">WRO 2026 <span style="opacity:.4">/</span> <strong>Hardware Reference</strong></div>
+  <div class="topbar-nav">
+    <a href="#computing">Computing</a>
+    <a href="#drive">Drive</a>
+    <a href="#sensors">Sensors</a>
+    <a href="#power">Power</a>
+    <a href="#structure">Structure</a>
+    <a href="#bom">Full BOM</a>
+  </div>
+  <a class="topbar-back" href="index.html">&larr; Build Guide</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Future Engineers &middot; Self-Driving Cars &middot; Team Sky Flyers #1090</div>
+  <h1>Every part on this vehicle,<br>and the <span>reason</span> it's there.</h1>
+  <p class="hero-sub">
+    This page exists because "what we used" and "why we used it" are different questions.
+    <code>docs/index.html</code> has the build-order BOM and pin-out; this page is the
+    component-by-component reasoning behind each choice &mdash; what it replaced, what rule
+    it satisfies, and what trade-off we accepted to get there.
+  </p>
+  <div class="hero-meta">
+    <div><b>19</b> distinct parts</div>
+    <div><b>2</b> controllers</div>
+    <div><b>1</b> drive motor <span style="color:var(--text-dim)">(WRO §11.5/§11.13)</span></div>
+    <div><b>2</b> independent power rails</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-inner">
+    <span class="legend-tag"><span class="legend-dot"></span> Reference designators follow schematic convention:</span>
+    <span><code>U</code> = compute</span>
+    <span><code>M</code> = motor</span>
+    <span><code>D</code> = driver</span>
+    <span><code>S</code> = sensor</span>
+    <span><code>BT</code> = battery</span>
+    <span><code>REG</code> = regulator</span>
+    <span><code>SW</code> = switch</span>
+    <span><code>W</code> = wheel</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ═══════════ COMPUTING ═══════════ -->
+  <section class="cat" id="computing">
+    <div class="cat-head">
+      <span class="cat-index">01</span>
+      <h2>Computing Layer</h2>
+    </div>
+    <p class="cat-desc">
+      Two controllers, deliberately, not one. Vision math and hardware timing want opposite things
+      from a processor — one wants throughput, the other wants determinism — so we split them
+      across a board built for each.
+    </p>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">U1</span>
+        <div class="part-titles">
+          <div class="part-name">Raspberry Pi 4 Model B — 8 GB</div>
+          <div class="part-role">Vision pipeline · state machine · planner</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            The whole autonomy stack — HSV segmentation, contour tracking, the world model, and
+            the planner state machine — runs here as ordinary Python/OpenCV. That's a throughput
+            problem: frames arrive continuously and each one has a real deadline, so we wanted the
+            fastest general-purpose SBC we could put inside the 300×200×300&nbsp;mm envelope
+            rather than a microcontroller running a hand-optimized subset of the pipeline.
+          </p>
+          <p>
+            <strong>8&nbsp;GB</strong> specifically because the vision pipeline, world-model memory,
+            and telemetry logging all run concurrently — 4&nbsp;GB is enough today, but it left no
+            headroom for the lightweight ML layer mentioned in the perception docs without risking
+            swap-induced frame drops mid-round.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>CPU</span><span>Quad-core Cortex-A72 @ 1.8 GHz</span></li>
+            <li><span>RAM</span><span>8 GB LPDDR4</span></li>
+            <li><span>Link to co-processor</span><span>USB serial, 115200 baud</span></li>
+            <li><span>Camera interface</span><span>USB 2.0 (UVC)</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">U2</span>
+        <div class="part-titles">
+          <div class="part-name">Arduino UNO R3</div>
+          <div class="part-role">Real-time I&sol;O co-processor</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Everything time-critical lives here instead of on the Pi: servo PWM, stepper STEP
+            pulses, three round-robin ultrasonic pings, an I²C IMU read, and a debounced
+            start-button interrupt. None of that can tolerate the Pi's non-deterministic
+            scheduling — a vision-loop hiccup should never turn into a missed step pulse or a
+            late servo update. Putting it on a separate, simple, deterministic MCU means a slow
+            camera frame degrades <em>steering accuracy</em>, not the ability to steer at all.
+          </p>
+          <p>
+            It also carries a <strong>watchdog</strong>: if the Pi goes quiet for &gt;500&nbsp;ms
+            (a USB unplug, a vision-loop crash), the Arduino stops the drive motor itself rather
+            than coasting on the last command forever.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>MCU</span><span>ATmega328P @ 16 MHz</span></li>
+            <li><span>Flash / SRAM</span><span>32 KB / 2 KB</span></li>
+            <li><span>Drives</span><span>Servo, stepper, 3× HC-SR04, IMU, start button</span></li>
+            <li><span>Fail-safe</span><span>500 ms comms-loss watchdog</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">U3</span>
+        <div class="part-titles">
+          <div class="part-name">0.96" I&sup2;C OLED Display (SSD1306)</div>
+          <div class="part-role">Live on-vehicle status — no laptop tether required</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Mounted on the top plate so the team can read the planner state
+            (<code>WAIT</code>/<code>OPEN_DRIVE</code>/<code>OBS_DRIVE</code>/<code>PARK_SEEK</code>/<code>PARK_EXEC</code>/<code>DONE</code>),
+            lap/section count, live distance and IMU-heading readings, and battery voltage directly
+            off the robot at the practice table or the vehicle-check bench — without opening a
+            laptop or SSH-ing into the Pi. It's a debug/status aid only; nothing in the autonomous
+            logic reads from it, so it has no effect on scoring either way.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Bus</span><span>I²C, address 0x3C — shares the Arduino's A4 (SDA) / A5 (SCL) bus with the MPU-6050</span></li>
+            <li><span>Resolution</span><span>128×64 monochrome</span></li>
+            <li><span>Refresh</span><span>~4 Hz (rate-limited, non-blocking)</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note pending">
+          <b>Kept off the critical timing path</b>
+          I²C writes to a display are slow relative to the stepper's STEP pulse timing. The display
+          update is throttled to roughly 4 times a second and issued between round-robin sensor
+          reads rather than every <code>loop()</code> tick, so it can't turn into the kind of
+          blocking call the rest of this firmware was rewritten to avoid.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ DRIVE ═══════════ -->
+  <section class="cat" id="drive">
+    <div class="cat-head">
+      <span class="cat-index">02</span>
+      <h2>Drive &amp; Actuation</h2>
+    </div>
+    <p class="cat-desc">
+      WRO §11.4/§11.5/§11.13 rule out the easy answers — no differential drive, no caster or
+      omni wheels, no electronically-linked "virtual" axle. What's left is one motor, one
+      mechanically-linked driven axle, and a separate steering actuator. Everything below exists
+      to make that constraint verifiable by looking at the wiring, not by trusting the firmware.
+    </p>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">M2 &middot; D1</span>
+        <div class="part-titles">
+          <div class="part-name">Shinano Kenshi STH-39D219 (NEMA14 stepper) + A4988/DRV8825 driver</div>
+          <div class="part-role">Sole drive motor — rear axle</div>
+        </div>
+        <span class="part-qty">QTY 1 + 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            This is the single most-revised decision on the vehicle. The build started with a
+            brushed DC gearmotor through a single-channel L298N — the conventional choice. We
+            switched to a stepper because a stepper's speed control is <strong>open-loop and
+            drift-free</strong>: a step-pulse frequency maps directly and repeatably to shaft
+            RPM. A DC motor's PWM duty cycle only approximates a given speed, and that
+            approximation shifts with load and with battery voltage as the pack discharges over
+            a 3-minute round — exactly the kind of silent drift that turns into a bad lap-timing
+            or cornering estimate hours after it was calibrated.
+          </p>
+          <p>
+            Wiring only <strong>STEP, DIR, and ENABLE</strong> to the driver (the motor's two
+            center-tap wires are left disconnected — bipolar drive) is itself a compliance
+            choice: with no second driver or motor channel present on the harness at all, a
+            firmware bug literally cannot drive a second axis independently, because there's
+            nothing there to drive. A judge inspecting the wiring during the vehicle check can
+            see single-motor compliance directly, without reading the code.
+          </p>
+          <p>We considered a ULN2003 unipolar driver first, but preferred STEP/DIR's single
+          pulse-train timing model over 4-phase sequencing, and the higher torque bipolar
+          drive makes available.</p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Step angle</span><span>1.8° (200 full steps/rev)</span></li>
+            <li><span>Wiring</span><span>6-wire, run bipolar</span></li>
+            <li><span>Rated (nameplate)</span><span>3.5 V DC, 0.7 A/phase</span></li>
+            <li><span>Driver</span><span>A4988 / DRV8825, full-step (MS1–3 default)</span></li>
+            <li><span>Arduino pins</span><span>D4 DIR · D5 STEP · D10 EN</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note">
+          <b>Trade-off accepted</b>
+          Lower peak torque per gram than the DC gearmotor it replaced, and holding torque draws
+          current even at a standstill unless the driver is explicitly disabled between commands
+          — which <code>vehicle_controller.ino::stopMotor()</code> now does.
+        </div>
+        <div class="note pending">
+          <b>Pending verification</b>
+          The 0.35&nbsp;V driver current-limit (Vref) is calculated from the motor's nameplate
+          rating and an assumed 0.1&nbsp;Ω sense resistor on the DRV8825 breakout — a convention
+          for that board family, not yet confirmed by lifting a resistor leg. First power-on is
+          done watching the motor closely rather than left unattended.
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">—</span>
+        <div class="part-titles">
+          <div class="part-name">20T → 60T Timing-Belt Pulley Pair</div>
+          <div class="part-role">3:1 reduction, motor shaft → rear axle</div>
+        </div>
+        <span class="part-qty">1 SET</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            A bare NEMA14 shaft has modest holding torque next to the DC gearmotor it replaced.
+            The belt reduction recovers roughly <strong>3× torque at the axle</strong> (before
+            belt/bearing losses) in exchange for 3× lower axle RPM at a given step rate — the
+            same trade a DC gearmotor's internal gearbox makes, just external and re-pulleyable
+            without touching the motor or firmware. Both rear wheels are mechanically forced to
+            turn together off this one belt-driven axle, so there's no possibility of the two
+            rear wheels spinning at different rates — which is exactly the "electronic
+            differential" WRO §11.5 disqualifies.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Belt width</span><span>6 mm</span></li>
+            <li><span>Belt length</span><span>202 mm</span></li>
+            <li><span>Ratio</span><span>3:1 (20T motor / 60T axle)</span></li>
+            <li><span>Conversion</span><span>axle_rpm = (step_hz / 200) × 60 / 3</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">M1</span>
+        <div class="part-titles">
+          <div class="part-name">MG996R Servo Motor</div>
+          <div class="part-role">Ackermann front steering</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Cheap, widely stocked, and delivers enough torque to drive the Ackermann linkage
+            directly off a single horn without a secondary gear stage. It runs off its own
+            regulated 6&nbsp;V rail rather than sharing the logic supply — see
+            <a href="#power">Power System</a> for why that separation exists.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Control</span><span>50 Hz PWM, Arduino D9</span></li>
+            <li><span>Operating range</span><span>4.8–7.2 V</span></li>
+            <li><span>Steering range</span><span>±25°</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">W1–W4</span>
+        <div class="part-titles">
+          <div class="part-name">Wheels — 2 driven, 2 steered</div>
+          <div class="part-role">Rear: linked to belt axle · Front: free-rotating, Ackermann-steered</div>
+        </div>
+        <span class="part-qty">QTY 4</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this configuration</h4>
+          <p>
+            Standard rubber wheels only — no caster, ball, or omni wheel anywhere on the vehicle.
+            WRO §11.4 rules those out outright, and they'd also fight the Ackermann geometry the
+            steering math assumes.
+          </p>
+        </div>
+        <div class="rule-row">
+          <span class="rule-chip">WRO §11.4 — no caster/omni</span>
+          <span class="rule-chip">WRO §11.5 — mechanically linked axle</span>
+          <span class="rule-chip">WRO §11.13 — single drive motor</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SENSORS ═══════════ -->
+  <section class="cat" id="sensors">
+    <div class="cat-head">
+      <span class="cat-index">03</span>
+      <h2>Sensors</h2>
+    </div>
+    <p class="cat-desc">
+      Each sensor was added to close a specific gap the others couldn't — not as a generic
+      "more data is better" checklist. Where a sensor is redundant to the camera on purpose,
+      that's noted explicitly, because a silently-duplicated signal is a different design
+      decision than a deliberately independent backup.
+    </p>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">S1</span>
+        <div class="part-titles">
+          <div class="part-name">Logitech C270 — USB Webcam</div>
+          <div class="part-role">Primary lane / wall / pillar / parking-marker vision</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Originally speced as a Raspberry Pi Camera Module V2. We switched mid-project to a
+            plain USB UVC webcam specifically so <code>camera/capture.py</code> reads frames
+            through standard OpenCV <code>VideoCapture</code> instead of Pi-specific
+            <code>picamera2</code> calls — decoupling the vision pipeline from one particular
+            board's camera API. Mounted 15–20&nbsp;cm off the ground at a 15° downward tilt,
+            fixed-focus (no autofocus hunting mid-frame).
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Resolution</span><span>640×480 @ 30 fps (MJPG)</span></li>
+            <li><span>Interface</span><span>USB 2.0</span></li>
+            <li><span>Mount</span><span>15–20 cm height, 15° downward tilt</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note pending">
+          <b>Cost of the switch</b>
+          The C270's horizontal FOV differs from the originally-planned Pi Camera and hasn't
+          been measured yet — <code>camera/angle.py::CAMERA_FOV</code> is a placeholder until
+          it's calibrated against the real unit.
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">S2–S4</span>
+        <div class="part-titles">
+          <div class="part-name">HC-SR04 Ultrasonic — Front / Left / Right</div>
+          <div class="part-role">Wall proximity, parking-collision guard, corridor fallback data</div>
+        </div>
+        <span class="part-qty">QTY 3</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why three, not one</h4>
+          <p>
+            The original design speced a single forward-facing sensor. We added left and right
+            units deliberately: one forward sensor can't detect <strong>lateral</strong> wall
+            proximity while cornering in the Open Challenge, and can't see a parking marker the
+            vehicle drifts into sideways while still pixel-centered on it. Front feeds the
+            parking-collision guard directly; left/right are read, logged, and shown on the HUD
+            today, with corridor-centering fusion intentionally deferred — see the note below.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Range</span><span>2–400 cm, ±3 mm</span></li>
+            <li><span>Front Trig/Echo</span><span>D12 / D13</span></li>
+            <li><span>Left Trig/Echo</span><span>D6 / D7</span></li>
+            <li><span>Right Trig/Echo</span><span>D8 / D11</span></li>
+            <li><span>Polling</span><span>Round-robin — one loop() never blocks on &gt;1</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note">
+          <b>Trade-off accepted</b>
+          Round-robin polling from one Arduino means each individual sensor refreshes roughly
+          every 3× the loop interval, not every loop — coverage traded for throughput.
+        </div>
+        <div class="note pending">
+          <b>Deliberately unwired, not forgotten</b>
+          Left/right readings aren't yet fused into active corridor-centering steering. Blending
+          an unverified distance threshold into steering that hasn't been checked against a real
+          corridor risks steering confidently into a wall — so the fusion is deferred until it
+          can be calibrated on the physical field, not guessed at from a laptop.
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">S5</span>
+        <div class="part-titles">
+          <div class="part-name">MPU-6050 — IMU (Gyro + Accel)</div>
+          <div class="part-role">Yaw heading during parking</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Added for one specific gap: pixel-centering on the parking markers can tell the
+            vehicle it's centered, but not whether it's <strong>parallel</strong> to the wall.
+            WRO's own parking rubric (§1.8.2/§10) gives 15/15 for parallel-and-centered versus
+            only 7/15 for centered-but-not-parallel — a camera-only controller structurally
+            cannot chase that other 8 points, because it has no signal for heading error at all.
+            Gyro-Z is integrated (bare I²C register access, no external library) into a running
+            yaw estimate that <code>control/parking_maneuver.py</code> uses to correct steering
+            while reversing into the lot.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Bus</span><span>I²C — A4 (SDA) / A5 (SCL)</span></li>
+            <li><span>Gyro range</span><span>±250 °/s (default)</span></li>
+            <li><span>Integration</span><span>Gyro-only — drifts over long runs</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">S6</span>
+        <div class="part-titles">
+          <div class="part-name">IR Line Sensor (Analog)</div>
+          <div class="part-role">Backup lap / corner-boundary line detection</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Deliberately redundant to the camera's own orange/blue corner-line detection
+            (<code>camera/lines.py</code>), in case the vision pipeline misses a fast line
+            transition at speed. The uplink event is received and logged, but kept as an
+            <strong>advisory</strong> signal rather than wired in as authoritative over the
+            camera — a design choice, not an oversight.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Output</span><span>Analog, adjustable sensitivity</span></li>
+            <li><span>Arduino pin</span><span>A0</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ POWER ═══════════ -->
+  <section class="cat" id="power">
+    <div class="cat-head">
+      <span class="cat-index">04</span>
+      <h2>Power System</h2>
+    </div>
+    <p class="cat-desc">
+      Two batteries, three rails, and every split between them exists to stop one subsystem's
+      current draw from starving another's voltage at exactly the wrong moment — a brownout mid-turn,
+      or a driver reset mid-lap.
+    </p>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">BT1</span>
+        <div class="part-titles">
+          <div class="part-name">7.4 V (2S) LiPo</div>
+          <div class="part-role">Feeds both step-down regulators</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this one</h4>
+          <p>
+            Sized to comfortably feed the two logic/servo step-down converters below without
+            sagging under their combined draw. It does <strong>not</strong> feed the stepper
+            driver directly — see BT2, and why that split matters.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Nominal</span><span>7.4 V, 2S</span></li>
+            <li><span>Capacity</span><span>≥ 2000 mAh recommended</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">BT2</span>
+        <div class="part-titles">
+          <div class="part-name">14.8 V (4S) Li-ion — Two 2S Packs in Series</div>
+          <div class="part-role">Dedicated stepper-driver VMOT supply</div>
+        </div>
+        <span class="part-qty">QTY 2 (paired)</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why this exists at all</h4>
+          <p>
+            The DRV8825's motor-supply spec floors at 8.2&nbsp;V. A 7.4&nbsp;V nominal 2S LiPo
+            sags well below that for a meaningful fraction of a 3-minute round as it discharges —
+            close enough to the driver's floor to risk a brownout reset on the stepper
+            <em>mid-run</em>. Rather than push the single 2S pack closer to its limit, the
+            driver's VMOT is fed from a separate 4S pack (two 2S sub-packs wired in series,
+            ~12&nbsp;V even at a typical 3.0&nbsp;V/cell cutoff) — comfortably clear of the
+            8.2&nbsp;V floor across the whole discharge curve, with headroom under the 45&nbsp;V
+            ceiling too.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Nominal</span><span>14.8 V (2× 2S in series)</span></li>
+            <li><span>Full charge</span><span>~16.8 V</span></li>
+            <li><span>At 3.0 V/cell cutoff</span><span>~12 V</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note warn">
+          <b>Handle with care</b>
+          The two 2S sub-packs must always be charged separately through their own balance
+          leads — never charge the series-combined string through one port, since neither
+          pack's BMS knows the other exists. Their independent BMS units also don't
+          communicate, so cell balance should be checked before each run rather than assumed.
+          A fuse or PTC on the pack's positive lead is planned, since nothing else in this
+          path limits fault current at 14.8&nbsp;V.
+        </div>
+        <div class="note pending">
+          <b>Not yet validated</b>
+          This is a paper decision — the 4S pack hasn't been assembled or load-tested yet.
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">REG1</span>
+        <div class="part-titles">
+          <div class="part-name">Step-Down Converter — 5 V, ≥ 3 A</div>
+          <div class="part-role">Logic rail: Raspberry Pi + Arduino</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why ≥3 A specifically</h4>
+          <p>
+            The Pi 4B under heavy CPU/vision load can pull enough current that an undersized
+            regulator brownouts it mid-frame — the ≥3&nbsp;A floor exists to keep that headroom
+            under worst-case pipeline load, not just idle draw.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Output</span><span>5 V regulated</span></li>
+            <li><span>Min. current</span><span>3 A</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">REG2</span>
+        <div class="part-titles">
+          <div class="part-name">Step-Down Converter — 6 V, ≥ 2 A</div>
+          <div class="part-role">Dedicated servo rail</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why it's separate from the logic rail</h4>
+          <p>
+            This is the real reason two regulators exist instead of one. A shared logic/servo
+            rail lets a hard steering transient — the servo drawing a current spike mid-turn —
+            sag the voltage feeding the Raspberry Pi. On a vision pipeline, that brief brownout
+            is a full frame-processing stall at exactly the moment the vehicle is turning: the
+            worst possible time to lose steering input. Splitting the rails trades one extra
+            regulator (cost, weight, wiring) for removing that failure mode entirely.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Spec</h4>
+          <ul class="spec-list">
+            <li><span>Output</span><span>6 V regulated</span></li>
+            <li><span>Min. current</span><span>2 A</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">SW1 &middot; SW2</span>
+        <div class="part-titles">
+          <div class="part-name">Rocker Power Switch + Momentary Push Button</div>
+          <div class="part-role">Main power ON · start round</div>
+        </div>
+        <span class="part-qty">QTY 1 + 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why exactly these two, and no more</h4>
+          <p>
+            WRO §9.9–§9.11 permit exactly one power switch and one start-button interaction
+            during a round — no physical mode selector, no extra switches. That's why challenge
+            type (<code>--challenge OPEN/OBSTACLE</code>) is a CLI flag decided before power-on,
+            not a physical switch on the chassis: adding one would itself be a rules violation,
+            however convenient it would be on competition day.
+          </p>
+        </div>
+        <div class="rule-row">
+          <span class="rule-chip">WRO §9.9 — no extra interactions</span>
+          <span class="rule-chip">WRO §9.10/§9.11 — one switch, one button</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sysmap">
+      <div class="sysmap-row">
+        <span class="sysmap-label">BT1 · 2S</span>
+        <span class="sysmap-node hi">7.4 V LiPo</span>
+        <span class="sysmap-arrow">→</span>
+        <span class="sysmap-node">REG1 5 V</span>
+        <span class="sysmap-arrow">→</span>
+        <span class="sysmap-node">Pi 4B + Arduino (logic)</span>
+      </div>
+      <div class="sysmap-row">
+        <span class="sysmap-label"></span>
+        <span class="sysmap-node hi" style="visibility:hidden">spacer</span>
+        <span class="sysmap-arrow" style="visibility:hidden">→</span>
+        <span class="sysmap-node">REG2 6 V</span>
+        <span class="sysmap-arrow">→</span>
+        <span class="sysmap-node">MG996R servo (isolated rail)</span>
+      </div>
+      <div class="sysmap-row">
+        <span class="sysmap-label">BT2 · 4S</span>
+        <span class="sysmap-node gold">14.8 V Li-ion</span>
+        <span class="sysmap-arrow">→</span>
+        <span class="sysmap-node">A4988/DRV8825 VMOT</span>
+        <span class="sysmap-arrow">→</span>
+        <span class="sysmap-node">STH-39D219 stepper</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ STRUCTURE ═══════════ -->
+  <section class="cat" id="structure">
+    <div class="cat-head">
+      <span class="cat-index">05</span>
+      <h2>Structure</h2>
+    </div>
+    <p class="cat-desc">
+      The one category still mid-build — noted honestly rather than glossed over.
+    </p>
+
+    <div class="part">
+      <div class="part-top">
+        <span class="part-id">—</span>
+        <div class="part-titles">
+          <div class="part-name">Custom 3D-Printed Chassis</div>
+          <div class="part-role">Base structure — camera mount, sensor placement, envelope compliance</div>
+        </div>
+        <span class="part-qty">QTY 1</span>
+      </div>
+      <div class="part-body">
+        <div class="part-why">
+          <h4>Why custom instead of an off-the-shelf RC platform</h4>
+          <p>
+            A custom chassis gives exact control over camera-mount geometry and sensor placement,
+            and lets every dimension be checked against the 300×200×300&nbsp;mm / 1.5&nbsp;kg
+            envelope (WRO §11.1/§11.2) directly, instead of adapting a stock platform's fixed
+            geometry to fit.
+          </p>
+        </div>
+        <div class="part-specs">
+          <h4>Status</h4>
+          <ul class="spec-list">
+            <li><span>Design files</span><span>In <code>cad/</code>, final-intent</span></li>
+            <li><span>Physical print</span><span>In fabrication, not yet complete</span></li>
+            <li><span>Interim data</span><span>Prior prototype chassis, until re-measured</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:0 26px 24px;">
+        <div class="note pending">
+          <b>Disclosed, not hidden</b>
+          Any weight/dimension figures elsewhere in this repo describe the prior interim
+          prototype used to validate the software pipeline, not the final competition chassis,
+          unless stated otherwise. Full reasoning and timeline: <code>ENGINEERING_JOURNAL.md</code>
+          → Criterion 1.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout">
+    <h3>The rule this page follows</h3>
+    <p>
+      A part earns a spot on this vehicle by solving one specific, named problem — not by being
+      the default or the first thing that worked. Where a part replaced an earlier one (the
+      stepper over the DC gearmotor, the C270 over the Pi Camera), that revision history is kept
+      rather than quietly overwritten, because <em>why we changed our mind</em> is part of the
+      engineering record too.
+    </p>
+    <p>
+      For the fuller design-reasoning narrative — testing evidence, risk awareness, what we
+      deliberately left unfinished and why — see <a href="../ENGINEERING_JOURNAL.md">ENGINEERING_JOURNAL.md</a>.
+      For build order, pin-out, and step-by-step assembly, see <a href="index.html">the main build guide</a>.
+    </p>
+  </div>
+
+  <!-- ═══════════ BOM ═══════════ -->
+  <section class="cat" id="bom">
+    <div class="cat-head">
+      <span class="cat-index">06</span>
+      <h2>Full Bill of Materials</h2>
+    </div>
+    <p class="cat-desc">Quantities and estimated cost for every part on this page, in one table.</p>
+
+    <div class="bom-wrap">
+      <table>
+        <thead>
+          <tr><th>Ref</th><th>Component</th><th>Qty</th><th>Role</th><th>Est. cost (₹)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>U1</td><td>Raspberry Pi 4B — 8 GB</td><td>1</td><td>Vision + planner</td><td>~8,500</td></tr>
+          <tr><td>U2</td><td>Arduino UNO R3</td><td>1</td><td>Real-time I/O</td><td>~600</td></tr>
+          <tr><td>M2</td><td>Stepper motor STH-39D219</td><td>1</td><td>Sole drive motor</td><td>~600</td></tr>
+          <tr><td>—</td><td>20T→60T timing belt + pulleys</td><td>1 set</td><td>3:1 reduction</td><td>~250</td></tr>
+          <tr><td>M1</td><td>Servo MG996R</td><td>1</td><td>Ackermann steering</td><td>~350</td></tr>
+          <tr><td>D1</td><td>A4988 / DRV8825 driver</td><td>1</td><td>Single-axis stepper control</td><td>~180</td></tr>
+          <tr><td>S1</td><td>Logitech C270 webcam</td><td>1</td><td>Primary vision</td><td>~1,200</td></tr>
+          <tr><td>S2–S4</td><td>HC-SR04 ultrasonic</td><td>3</td><td>F/L/R proximity</td><td>~240</td></tr>
+          <tr><td>S5</td><td>MPU-6050 IMU</td><td>1</td><td>Parking yaw correction</td><td>~120</td></tr>
+          <tr><td>S6</td><td>IR line sensor</td><td>1</td><td>Backup line detection</td><td>~60</td></tr>
+          <tr><td>BT1</td><td>7.4 V 2S LiPo</td><td>1</td><td>Logic + servo rails</td><td>~900</td></tr>
+          <tr><td>BT2</td><td>2S Li-ion sub-pack (×2, series → 4S)</td><td>2</td><td>Stepper driver VMOT</td><td>~1,100</td></tr>
+          <tr><td>REG1</td><td>Step-down 5 V ≥3 A</td><td>1</td><td>Pi + Arduino</td><td>~150</td></tr>
+          <tr><td>REG2</td><td>Step-down 6 V ≥2 A</td><td>1</td><td>Servo rail</td><td>~150</td></tr>
+          <tr><td>—</td><td>Chassis frame</td><td>1</td><td>Structure</td><td>~1,500</td></tr>
+          <tr><td>W1–4</td><td>Wheels</td><td>4</td><td>2 driven + 2 steered</td><td>~400</td></tr>
+          <tr><td>—</td><td>Front axle, Ackermann linkage</td><td>1 set</td><td>Steering geometry</td><td>~80</td></tr>
+          <tr><td>SW1</td><td>Rocker power switch</td><td>1</td><td>Main power</td><td>~30</td></tr>
+          <tr><td>SW2</td><td>Momentary push button</td><td>1</td><td>Round start</td><td>~20</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>WRO 2026 &middot; Future Engineers &middot; Self-Driving Cars &mdash; Hardware Reference</p>
+  <p style="margin-top:6px;">
+    <a href="index.html">Build Guide</a> &nbsp;&middot;&nbsp;
+    <a href="camera_processing.html">Vision Pipeline</a> &nbsp;&middot;&nbsp;
+    <a href="../ENGINEERING_JOURNAL.md">Engineering Journal</a>
+  </p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRO 2026 — Camera Processing & Perception System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1219;
+    --bg3: #141820;
+    --card: #161b25;
+    --border: #1e2535;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-brand {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-brand .tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-brand h2 {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .nav-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 20px 6px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    color: var(--text3);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    border-left-color: var(--accent);
+  }
+
+  .nav-link .nav-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    min-width: 18px;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0a0c10 0%, #0f1a2e 50%, #0a0c10 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 60px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 200px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px; height: 1px;
+    background: var(--accent);
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    color: var(--text2);
+    max-width: 620px;
+    font-size: 15px;
+    margin-bottom: 36px;
+    line-height: 1.7;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .badge-cyan { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .badge-violet { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .badge-green { background: rgba(16,185,129,0.1); color: var(--accent3); border: 1px solid rgba(16,185,129,0.2); }
+  .badge-amber { background: rgba(245,158,11,0.1); color: var(--warn); border: 1px solid rgba(245,158,11,0.2); }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    padding: 0 60px 80px;
+    max-width: 1000px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    padding-top: 64px;
+    border-top: 1px solid var(--border);
+    margin-top: 64px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .section:first-child { border-top: none; margin-top: 48px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin-top: 6px;
+    white-space: nowrap;
+    letter-spacing: 2px;
+  }
+
+  .section h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section h3::before {
+    content: '';
+    display: block;
+    width: 3px; height: 16px;
+    background: var(--accent2);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  p {
+    color: var(--text2);
+    margin-bottom: 14px;
+    line-height: 1.75;
+  }
+
+  /* ── PIPELINE FLOW ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+    max-width: 500px;
+  }
+
+  .pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .pipeline-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+    text-align: center;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .pipeline-box:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .pipeline-box.highlight {
+    border-color: rgba(0,212,255,0.4);
+    color: var(--accent);
+    background: rgba(0,212,255,0.06);
+  }
+
+  .pipeline-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 0;
+    color: var(--text3);
+    font-size: 12px;
+    width: 100%;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #161b22;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  pre {
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: #c9d1d9;
+  }
+
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .var { color: #ffa657; }
+
+  /* ── TABLES ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead {
+    background: #161b25;
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 11px 16px;
+    color: var(--text2);
+    border-bottom: 1px solid rgba(30,37,53,0.6);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+  .val-green { color: var(--green); font-family: var(--mono); font-size: 12px; }
+  .val-red { color: var(--red); font-family: var(--mono); font-size: 12px; }
+  .val-amber { color: var(--warn); font-family: var(--mono); font-size: 12px; }
+  .val-cyan { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .callout-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .callout-body { flex: 1; }
+
+  .callout-title {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .callout-text {
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .callout-info {
+    background: rgba(0,212,255,0.06);
+    border: 1px solid rgba(0,212,255,0.15);
+  }
+
+  .callout-info .callout-title { color: var(--accent); }
+  .callout-info .callout-text { color: rgba(0,212,255,0.8); }
+
+  .callout-warn {
+    background: rgba(245,158,11,0.06);
+    border: 1px solid rgba(245,158,11,0.15);
+  }
+
+  .callout-warn .callout-title { color: var(--warn); }
+  .callout-warn .callout-text { color: rgba(245,158,11,0.8); }
+
+  .callout-success {
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.15);
+  }
+
+  .callout-success .callout-title { color: var(--accent3); }
+  .callout-success .callout-text { color: rgba(16,185,129,0.8); }
+
+  .callout-violet {
+    background: rgba(124,58,237,0.06);
+    border: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .callout-violet .callout-title { color: #a78bfa; }
+  .callout-violet .callout-text { color: rgba(167,139,250,0.8); }
+
+  /* ── COLOR SWATCHES ── */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .color-card {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .color-swatch {
+    height: 56px;
+  }
+
+  .color-info {
+    background: var(--card);
+    padding: 10px 14px;
+  }
+
+  .color-name {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .color-code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* ── TWO-COL LAYOUT ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  .two-col-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .info-card:hover { border-color: rgba(0,212,255,0.2); }
+
+  .info-card-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .info-card p {
+    font-size: 13px;
+    margin: 0;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula-box {
+    background: var(--card);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    text-align: center;
+  }
+
+  .formula-main {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: #a78bfa;
+    margin-bottom: 12px;
+  }
+
+  .formula-sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  /* ── LATENCY BARS ── */
+  .latency-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .latency-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .latency-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    min-width: 160px;
+  }
+
+  .latency-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .latency-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .latency-val {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ── STATE VECTOR ── */
+  .state-vector {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    margin: 16px 0;
+  }
+
+  .sv-label {
+    color: var(--text3);
+    margin-bottom: 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .sv-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(30,37,53,0.5);
+  }
+
+  .sv-row:last-child { border-bottom: none; }
+
+  .sv-idx { color: var(--text3); min-width: 30px; }
+  .sv-key { color: var(--accent); min-width: 160px; }
+  .sv-type { color: #a78bfa; min-width: 60px; }
+  .sv-desc { color: var(--text2); font-size: 11px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* ── SUBSECTION DIVIDER ── */
+  .sub-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin: 32px 0;
+  }
+
+  /* ── PILL TAG ── */
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    vertical-align: middle;
+  }
+
+  .pill-yes { background: rgba(34,197,94,0.15); color: var(--green); }
+  .pill-no { background: rgba(239,68,68,0.15); color: var(--red); }
+  .pill-fast { background: rgba(0,212,255,0.12); color: var(--accent); }
+  .pill-slow { background: rgba(245,158,11,0.12); color: var(--warn); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .hero, .content { padding-left: 24px; padding-right: 24px; }
+    .two-col, .two-col-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="tag">WRO 2026</div>
+    <h2>Camera & Perception System</h2>
+  </div>
+
+  <div class="nav-section-label">Overview</div>
+  <a href="#philosophy" class="nav-link"><span class="nav-num">§1</span> System Philosophy</a>
+  <a href="#architecture" class="nav-link"><span class="nav-num">§2</span> Full Architecture</a>
+
+  <div class="nav-section-label">Vision Pipeline</div>
+  <a href="#camera" class="nav-link"><span class="nav-num">§3</span> Camera Hardware</a>
+  <a href="#roi" class="nav-link"><span class="nav-num">§4</span> ROI Processing</a>
+  <a href="#hsv" class="nav-link"><span class="nav-num">§5</span> HSV Segmentation</a>
+  <a href="#morphology" class="nav-link"><span class="nav-num">§6</span> Morphological Ops</a>
+  <a href="#contours" class="nav-link"><span class="nav-num">§7</span> Contour Detection</a>
+
+  <div class="nav-section-label">Geometry & Estimation</div>
+  <a href="#distance" class="nav-link"><span class="nav-num">§8</span> Distance Estimation</a>
+  <a href="#calibration" class="nav-link"><span class="nav-num">§9</span> Camera Calibration</a>
+  <a href="#angle" class="nav-link"><span class="nav-num">§10</span> Angle Estimation</a>
+  <a href="#projection" class="nav-link"><span class="nav-num">§11</span> World Projection</a>
+
+  <div class="nav-section-label">Intelligence Layer</div>
+  <a href="#tracking" class="nav-link"><span class="nav-num">§12</span> Object Tracking</a>
+  <a href="#state" class="nav-link"><span class="nav-num">§13</span> State Estimation</a>
+  <a href="#memory" class="nav-link"><span class="nav-num">§14</span> Track Memory</a>
+  <a href="#worldmodel" class="nav-link"><span class="nav-num">§14A</span> World Model</a>
+  <a href="#ml" class="nav-link"><span class="nav-num">§15</span> Lightweight ML</a>
+
+  <div class="nav-section-label">Control</div>
+  <a href="#pid" class="nav-link"><span class="nav-num">§16</span> PID Controller</a>
+  <a href="#steering" class="nav-link"><span class="nav-num">§17</span> Steering Logic</a>
+  <a href="#performance" class="nav-link"><span class="nav-num">§18</span> Performance</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Future Engineers — Self-Driving Cars</div>
+    <h1>Camera Processing &amp;<br><span>ADAS-Style Perception</span></h1>
+    <p class="hero-sub">
+      A complete engineering reference for the vision pipeline, geometry engine, object tracker,
+      state estimator, lightweight ML layer, PID controller, and lap optimization strategy
+      powering your WRO 2026 robot.
+    </p>
+    <div class="hero-badges">
+      <span class="badge badge-cyan">Raspberry Pi 4B · 8GB</span>
+      <span class="badge badge-violet">Logitech C270 / Pi Camera</span>
+      <span class="badge badge-green">40–90 FPS Target</span>
+      <span class="badge badge-amber">OpenCV · Python</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- §1 PHILOSOPHY -->
+    <div class="section" id="philosophy">
+      <div class="section-header">
+        <span class="section-num">§01</span>
+        <h2>System Philosophy — Why Not Deep Learning?</h2>
+      </div>
+
+      <p>Many beginners attempt to train a CNN to directly map camera frames to steering commands. While elegant in theory, this approach fails in practice on a Raspberry Pi 4B under WRO competition conditions. The architecture chosen here is <strong>engineered vision augmented with lightweight intelligence</strong> — the same paradigm used in real ADAS systems.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <div class="info-card-title">❌ Naive Deep Learning</div>
+          <p>Camera → CNN → Steering angle. Requires massive datasets, GPU-grade hardware, produces black-box decisions, latency of 30–120 ms per frame, impossible to debug at competition.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">✅ This System</div>
+          <p>Engineered geometry + lightweight ML optimization. Deterministic, debuggable, sub-5 ms core loop, no dataset required, mirrors professional ADAS design philosophy.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <div class="callout-title">WRO Competition Alignment</div>
+          <p class="callout-text">The rules explicitly reward "use of computer vision and sensor fusion to estimate the state of the parkours." A geometry-driven pipeline with explainable state vectors scores better on the engineering journal (Criterion 3 — Software Architecture) than a black-box CNN that the team cannot fully explain.</p>
+        </div>
+      </div>
+
+      <h3>CNN Problems on Raspberry Pi 4B</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Problem</th><th>Impact on Robot</th><th>Severity</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>High latency (30–120 ms)</td><td>Control loop too slow; robot overshoots</td><td><span class="val-red">CRITICAL</span></td></tr>
+            <tr><td>CPU saturation</td><td>FPS drops below 10; jerky movement</td><td><span class="val-red">CRITICAL</span></td></tr>
+            <tr><td>Dataset dependency</td><td>No labeled WRO field images exist</td><td><span class="val-amber">HIGH</span></td></tr>
+            <tr><td>Overfitting</td><td>Fails on competition field vs. training env</td><td><span class="val-amber">HIGH</span></td></tr>
+            <tr><td>Black-box decisions</td><td>Cannot debug why robot goes wrong</td><td><span class="val-amber">HIGH</span></td></tr>
+            <tr><td>Journal explanation</td><td>Hard to justify to judges (Criterion 3)</td><td><span class="val-cyan">MEDIUM</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- §2 ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <span class="section-num">§02</span>
+        <h2>Full System Architecture</h2>
+      </div>
+
+      <p>The complete perception-to-control pipeline processes every camera frame through a deterministic sequence of transformations, extracts a compact numerical state vector, optionally routes through a lightweight ML optimizer, and outputs motor commands via PID.</p>
+
+      <div class="pipeline">
+        <div class="pipeline-step"><div class="pipeline-box highlight">📷 Camera Input — C270 or Pi Camera (640×480 @ 30–60 FPS)</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">ROI Crop — discard irrelevant image area</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">BGR → HSV Conversion</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Color Segmentation — Red / Green / Magenta</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Morphological Cleanup — erode + dilate</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Contour Detection + Bounding Boxes</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Distance Estimation (similar triangles)</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Angle Estimation (pixel offset)</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Kalman Filter Object Tracking</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Track Memory System</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">State Vector [7 features]</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">Lightweight ML (Random Forest / XGBoost)</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box">PID Steering Controller</div></div>
+        <div class="pipeline-arrow">↓</div>
+        <div class="pipeline-step"><div class="pipeline-box highlight">🚗 Arduino Motor Commands</div></div>
+      </div>
+    </div>
+
+    <!-- §3 CAMERA -->
+    <div class="section" id="camera">
+      <div class="section-header">
+        <span class="section-num">§03</span>
+        <h2>Camera Hardware &amp; Configuration</h2>
+      </div>
+
+      <p>The vision system supports two interchangeable camera options: a <strong>Logitech C270 USB webcam</strong> (current default hardware, connected via <code>cv2.VideoCapture</code> over UVC) and a <strong>Raspberry Pi Camera Module</strong> (Rev 1.3 or V2, connected via CSI ribbon cable and accessed through <code>picamera2</code>). Everything downstream of frame capture — ROI crop, HSV masking, contour detection, distance/angle estimation — operates on the same BGR <code>numpy</code> array regardless of which camera produced it, so the two are drop-in alternatives for each other at the capture layer only.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Property</th><th>Logitech C270 (USB)</th><th>Pi Camera Module (CSI)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Connection</td><td>USB 2.0 (UVC), any USB port</td><td>CSI ribbon cable, Pi-specific header</td></tr>
+            <tr><td>Capture API</td><td>OpenCV <code>VideoCapture</code></td><td><code>picamera2</code></td></tr>
+            <tr><td>Field of view</td><td>~60° (unmeasured on this unit — see note below)</td><td>~54° (Rev 1.3) / ~62° (V2)</td></tr>
+            <tr><td>Max practical res @ FPS</td><td>640×480 @ 30 FPS (MJPG)</td><td>640×480 @ 30–60 FPS</td></tr>
+            <tr><td>Exposure/WB control</td><td>Driver-dependent, coarser control</td><td>Fine-grained via <code>controls={}</code> dict</td></tr>
+            <tr><td>Mounting</td><td>External bracket, flexible placement</td><td>Ribbon length limits placement, more rigid mount typical</td></tr>
+            <tr><td>Why you'd pick it</td><td>Board-agnostic, works on a laptop for <code>--dry-run</code> testing too</td><td>Lower latency capture, finer manual exposure/WB lockdown</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <div class="callout-title">Current hardware vs. supported alternative</div>
+          <p class="callout-text">The C270 is what's actually mounted on the vehicle today (see BOM in <code>hardware.html</code>) — it replaced an originally-planned Pi Camera Module V2 so the capture code wouldn't be tied to a Pi-specific API. The Pi Camera path below is kept fully documented and supported as a fallback/alternative, not a leftover: swap hardware, swap the capture function, and the rest of the pipeline is unaffected. Whichever camera is physically installed, its FOV must be measured and locked into <code>camera/angle.py::CAMERA_FOV</code> before relying on any distance estimate.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Recommended Value</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Resolution</td><td>640 × 480</td><td>Best latency/detail balance for Pi 4B, on either camera</td></tr>
+            <tr><td>Frame Rate</td><td>30–60 FPS (30 min., C270 caps near 30)</td><td>30 FPS minimum; 60 FPS for fast laps 2 &amp; 3 when the Pi Camera's higher rate is available</td></tr>
+            <tr><td>Exposure Mode</td><td>Manual (fixed)</td><td>Prevents HSV drift from auto-exposure</td></tr>
+            <tr><td>White Balance</td><td>Locked (daylight)</td><td>Stable hue values under competition lighting</td></tr>
+            <tr><td>Shutter Speed</td><td>~8000 µs (Pi Camera) / fixed exposure step (C270)</td><td>Reduce motion blur at speed</td></tr>
+            <tr><td>ISO / Gain</td><td>Fixed (tuned on-site)</td><td>Consistent color response</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <div class="callout-title">Competition Day Calibration</div>
+          <p class="callout-text">WRO rules (§13.18) explicitly state that color differences may appear between the specification and actual field objects. Use practice time to lock your HSV thresholds to the actual competition field — not your home setup. Bring a laptop and pre-written calibration script.</p>
+        </div>
+      </div>
+
+      <h3>Capture Code — Both Options</h3>
+      <p>The two capture functions below return an identical BGR frame shape, so a single <code>capture.py</code> can select between them with one config flag (e.g. <code>--camera {c270,picam}</code>) without touching anything downstream.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Logitech C270 (OpenCV VideoCapture)</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="kw">import</span> cv2
+
+<span class="var">cap</span> = cv2.VideoCapture(<span class="num">0</span>)  <span class="cmt"># /dev/video0 — confirm index if other UVC devices are attached</span>
+<span class="var">cap</span>.set(cv2.CAP_PROP_FRAME_WIDTH,  <span class="num">640</span>)
+<span class="var">cap</span>.set(cv2.CAP_PROP_FRAME_HEIGHT, <span class="num">480</span>)
+<span class="var">cap</span>.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*<span class="str">"MJPG"</span>))
+<span class="var">cap</span>.set(cv2.CAP_PROP_FPS, <span class="num">30</span>)
+<span class="var">cap</span>.set(cv2.CAP_PROP_AUTO_EXPOSURE, <span class="num">1</span>)   <span class="cmt"># 1 = manual mode on most UVC drivers</span>
+<span class="var">cap</span>.set(cv2.CAP_PROP_EXPOSURE, <span class="num">-6</span>)       <span class="cmt"># fixed exposure step — tune on-site</span>
+
+<span class="cmt"># Main loop</span>
+<span class="kw">while</span> <span class="num">True</span>:
+    <span class="var">ok</span>, <span class="var">frame</span> = cap.read()  <span class="cmt"># BGR np.ndarray, ~640x480x3</span>
+    <span class="kw">if</span> <span class="kw">not</span> <span class="var">ok</span>:
+        <span class="kw">continue</span>
+    <span class="cmt"># → pass to ROI crop next</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Raspberry Pi Camera Module (picamera2)</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="kw">from</span> picamera2 <span class="kw">import</span> Picamera2
+<span class="kw">import</span> cv2
+
+<span class="var">picam2</span> = Picamera2()
+<span class="var">config</span> = picam2.create_preview_configuration(
+    main={<span class="str">"size"</span>: (<span class="num">640</span>, <span class="num">480</span>), <span class="str">"format"</span>: <span class="str">"BGR888"</span>},
+    controls={
+        <span class="str">"ExposureTime"</span>: <span class="num">8000</span>,      <span class="cmt"># µs — freeze exposure</span>
+        <span class="str">"AnalogueGain"</span>: <span class="num">2.0</span>,       <span class="cmt"># fixed gain</span>
+        <span class="str">"AwbEnable"</span>: <span class="num">False</span>,         <span class="cmt"># disable auto white balance</span>
+        <span class="str">"ColourGains"</span>: (<span class="num">1.4</span>, <span class="num">1.5</span>), <span class="cmt"># manual WB (tune on-site)</span>
+    }
+)
+picam2.configure(<span class="var">config</span>)
+picam2.start()
+
+<span class="cmt"># Main loop</span>
+<span class="kw">while</span> <span class="num">True</span>:
+    <span class="var">frame</span> = picam2.capture_array()   <span class="cmt"># ~2–4 ms capture time, same BGR shape as VideoCapture</span>
+    <span class="cmt"># → pass to ROI crop next</span></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">🔁</div>
+        <div class="callout-body">
+          <div class="callout-title">Swapping cameras mid-season</div>
+          <p class="callout-text">Because both paths hand off an identical frame shape, switching hardware only means re-running HSV calibration and re-measuring <code>CAMERA_FOV</code> — no changes needed in <code>camera/warp.py</code>, <code>camera/corridor.py</code>, or any contour/distance code past the capture step.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- §4 ROI -->
+    <div class="section" id="roi">
+      <div class="section-header">
+        <span class="section-num">§04</span>
+        <h2>Region of Interest (ROI) Processing</h2>
+      </div>
+
+      <p>ADAS systems never process entire frames uniformly. The robot needs to see only the road region ahead — specifically the lower-center area where pillars appear at competition-relevant distances. ROI cropping is the single most impactful optimization available.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-icon">📈</div>
+        <div class="callout-body">
+          <div class="callout-title">FPS Impact of ROI</div>
+          <p class="callout-text">Processing a 640×280 ROI instead of 640×480 reduces pixel count by 42%, translating directly to a proportional reduction in HSV conversion and morphological operation time. Observed FPS improvement: ~35–50% on Pi 4B.</p>
+        </div>
+      </div>
+
+      <h3>ROI Definition Strategy</h3>
+      <p>The ROI should capture the zone from the horizon down to the front bumper of the robot. Experimentally determine y_start by placing a pillar at maximum detection range and noting its lowest visible pixel row.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — ROI Crop</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="cmt"># Full frame: 640 × 480</span>
+<span class="cmt"># ROI: rows 200–460, cols 80–560 (tune to your camera mount)</span>
+
+<span class="kw">def</span> <span class="fn">extract_roi</span>(<span class="var">frame</span>):
+    <span class="var">roi</span> = <span class="var">frame</span>[<span class="num">200</span>:<span class="num">460</span>, <span class="num">80</span>:<span class="num">560</span>]   <span class="cmt"># y_start:y_end, x_start:x_end</span>
+    <span class="kw">return</span> <span class="var">roi</span>
+
+<span class="cmt"># Optional: downscale the ROI further for extreme speed</span>
+<span class="kw">def</span> <span class="fn">extract_roi_fast</span>(<span class="var">frame</span>):
+    <span class="var">roi</span> = <span class="var">frame</span>[<span class="num">200</span>:<span class="num">460</span>, <span class="num">80</span>:<span class="num">560</span>]
+    <span class="kw">return</span> cv2.resize(<span class="var">roi</span>, (<span class="num">320</span>, <span class="num">130</span>))  <span class="cmt"># halved — very fast</span>
+
+<span class="cmt"># Visualize ROI during tuning (remove for competition)</span>
+cv2.rectangle(<span class="var">frame</span>, (<span class="num">80</span>, <span class="num">200</span>), (<span class="num">560</span>, <span class="num">460</span>), (<span class="num">0</span>, <span class="num">255</span>, <span class="num">255</span>), <span class="num">2</span>)</pre>
+      </div>
+
+      <h3>Why not the whole frame?</h3>
+      <div class="two-col">
+        <div class="info-card">
+          <div class="info-card-title">Upper region (sky / ceiling)</div>
+          <p>Contains no pillars, no walls, no useful data. Only contributes noise and wasted CPU cycles. Always discard.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">Far edges (left/right extremes)</div>
+          <p>At 640 px wide, edge pillars are near-wall and already committed passes. Crop to ~80–560 to center on actionable geometry.</p>
+        </div>
+      </div>
+    </div>
+    <!-- ───────────────────────────────────────────────────────────── -->
+<!-- INSERT THIS SECTION AFTER ROI PROCESSING SECTION (§04) -->
+<!-- ───────────────────────────────────────────────────────────── -->
+
+<div class="section" id="birdseye">
+  <div class="section-header">
+    <span class="section-num">§04A</span>
+    <h2>Bird's Eye Perspective Transformation</h2>
+  </div>
+
+  <p>
+    Raw camera frames suffer from perspective distortion.
+    Objects farther away appear smaller and skewed,
+    making geometric reasoning inconsistent.
+    Modern ADAS systems solve this using a Bird’s Eye Perspective Transform.
+  </p>
+
+  <p>
+    The camera frame is warped into a top-down geometric representation of the field.
+    This stabilizes obstacle positions, improves ROI consistency,
+    simplifies seat localization, and dramatically improves state estimation reliability.
+  </p>
+
+  <div class="callout callout-success">
+    <div class="callout-icon">🛰️</div>
+    <div class="callout-body">
+      <div class="callout-title">Why This Matters</div>
+      <p class="callout-text">
+        After perspective correction, the robot no longer reasons in distorted image space.
+        It reasons in a geometry-stabilized field representation similar to real autonomous vehicles.
+      </p>
+    </div>
+  </div>
+
+  <h3>ADAS-Style Geometry Pipeline</h3>
+
+  <div class="pipeline">
+    <div class="pipeline-step"><div class="pipeline-box highlight">📷 Camera Frame</div></div>
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step"><div class="pipeline-box">Perspective Warp</div></div>
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step"><div class="pipeline-box">Top-Down Geometry Space</div></div>
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step"><div class="pipeline-box">Seat ROI Activation</div></div>
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step"><div class="pipeline-box">HSV Segmentation</div></div>
+  </div>
+
+  <h3>Perspective Warp Using OpenCV</h3>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Python — Bird's Eye Warp</span>
+      <div class="code-dots">
+        <span class="dot-r"></span>
+        <span class="dot-y"></span>
+        <span class="dot-g"></span>
+      </div>
+    </div>
+
+<pre><span class="kw">import</span> cv2
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cmt"># Source points from camera image</span>
+<span class="var">src</span> = np.float32([
+    [<span class="num">120</span>, <span class="num">320</span>],
+    [<span class="num">520</span>, <span class="num">320</span>],
+    [<span class="num">0</span>,   <span class="num">480</span>],
+    [<span class="num">640</span>, <span class="num">480</span>]
+])
+
+<span class="cmt"># Destination points for top-down view</span>
+<span class="var">dst</span> = np.float32([
+    [<span class="num">160</span>, <span class="num">0</span>],
+    [<span class="num">480</span>, <span class="num">0</span>],
+    [<span class="num">160</span>, <span class="num">480</span>],
+    [<span class="num">480</span>, <span class="num">480</span>]
+])
+
+<span class="cmt"># Compute transformation matrix</span>
+<span class="var">M</span> = cv2.getPerspectiveTransform(<span class="var">src</span>, <span class="var">dst</span>)
+
+<span class="cmt"># Apply perspective warp</span>
+<span class="var">warped</span> = cv2.warpPerspective(
+    <span class="var">frame</span>,
+    <span class="var">M</span>,
+    (<span class="num">640</span>, <span class="num">480</span>)
+)</pre>
+  </div>
+
+  <h3>Advantages of Bird’s Eye Geometry</h3>
+
+  <div class="two-col">
+
+    <div class="info-card">
+      <div class="info-card-title">Without Warp</div>
+      <p>
+        Strong perspective distortion,
+        inconsistent obstacle scaling,
+        unstable seat geometry,
+        poor localization accuracy.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">With Warp</div>
+      <p>
+        Stable geometric reasoning,
+        predictable seat indexing,
+        improved obstacle consistency,
+        better trajectory planning.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">📍</div>
+    <div class="callout-body">
+      <div class="callout-title">Critical for Configuration Matching</div>
+      <p class="callout-text">
+        Perspective normalization is one of the key enabling technologies
+        behind reliable seat-state encoding and constrained-state reasoning.
+      </p>
+    </div>
+  </div>
+</div>
+
+    <!-- §5 HSV -->
+    <div class="section" id="hsv">
+      <div class="section-header">
+        <span class="section-num">§05</span>
+        <h2>HSV Color Segmentation</h2>
+      </div>
+
+      <p>RGB color detection is notoriously unstable under varying lighting — a red pillar under fluorescent competition lights will have a completely different RGB value than under daylight. HSV (Hue-Saturation-Value) separates color identity from brightness, making masks robust to illumination changes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Channel</th><th>Meaning</th><th>Range</th><th>Why It Matters</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>H (Hue)</td><td>Pure color identity</td><td>0–179 in OpenCV</td><td>Stable under brightness changes</td></tr>
+            <tr><td>S (Saturation)</td><td>Color purity / vividness</td><td>0–255</td><td>Filters grey walls, floor, shadows</td></tr>
+            <tr><td>V (Value)</td><td>Brightness</td><td>0–255</td><td>Lower bound prevents black noise matches</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>WRO Official Pillar Colors → HSV Masks</h3>
+      <p>The rules specify exact RGB values for traffic signs (§13.21, §13.22) and parking markers (§13.27). These translate to the following HSV thresholds:</p>
+
+      <div class="color-grid">
+        <div class="color-card">
+          <div class="color-swatch" style="background: rgb(238,39,55);"></div>
+          <div class="color-info">
+            <div class="color-name" style="color: #ef4444;">Red Pillar</div>
+            <div class="color-code">RGB (238, 39, 55) — Rule §13.21</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background: rgb(68,214,44);"></div>
+          <div class="color-info">
+            <div class="color-name" style="color: #22c55e;">Green Pillar</div>
+            <div class="color-code">RGB (68, 214, 44) — Rule §13.22</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch" style="background: rgb(255,0,255);"></div>
+          <div class="color-info">
+            <div class="color-name" style="color: #e879f9;">Magenta Marker</div>
+            <div class="color-code">RGB (255, 0, 255) — Rule §13.27</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — HSV Masks (all three objects)</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> cv2
+
+<span class="kw">def</span> <span class="fn">build_masks</span>(<span class="var">roi</span>):
+    <span class="var">hsv</span> = cv2.cvtColor(<span class="var">roi</span>, cv2.COLOR_BGR2HSV)
+
+    <span class="cmt"># ── RED PILLAR (wraps around hue 0°) ──────────────────────────</span>
+    <span class="cmt"># Red spans two ranges in OpenCV HSV (0–10 and 170–180)</span>
+    <span class="var">lower_red1</span> = np.array([<span class="num">0</span>,  <span class="num">120</span>, <span class="num">70</span>])
+    <span class="var">upper_red1</span> = np.array([<span class="num">10</span>, <span class="num">255</span>, <span class="num">255</span>])
+    <span class="var">lower_red2</span> = np.array([<span class="num">170</span>, <span class="num">120</span>, <span class="num">70</span>])
+    <span class="var">upper_red2</span> = np.array([<span class="num">180</span>, <span class="num">255</span>, <span class="num">255</span>])
+
+    <span class="var">mask_red</span> = (cv2.inRange(<span class="var">hsv</span>, <span class="var">lower_red1</span>, <span class="var">upper_red1</span>) |
+                cv2.inRange(<span class="var">hsv</span>, <span class="var">lower_red2</span>, <span class="var">upper_red2</span>))
+
+    <span class="cmt"># ── GREEN PILLAR ──────────────────────────────────────────────</span>
+    <span class="var">lower_green</span> = np.array([<span class="num">40</span>,  <span class="num">50</span>,  <span class="num">50</span>])
+    <span class="var">upper_green</span> = np.array([<span class="num">90</span>, <span class="num">255</span>, <span class="num">255</span>])
+    <span class="var">mask_green</span>  = cv2.inRange(<span class="var">hsv</span>, <span class="var">lower_green</span>, <span class="var">upper_green</span>)
+
+    <span class="cmt"># ── MAGENTA PARKING MARKERS ───────────────────────────────────</span>
+    <span class="var">lower_mag</span>  = np.array([<span class="num">140</span>, <span class="num">80</span>, <span class="num">80</span>])
+    <span class="var">upper_mag</span>  = np.array([<span class="num">170</span>, <span class="num">255</span>, <span class="num">255</span>])
+    <span class="var">mask_mag</span>   = cv2.inRange(<span class="var">hsv</span>, <span class="var">lower_mag</span>, <span class="var">upper_mag</span>)
+
+    <span class="kw">return</span> <span class="var">mask_red</span>, <span class="var">mask_green</span>, <span class="var">mask_mag</span></pre>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <div class="callout-title">Tune on the Actual Field</div>
+          <p class="callout-text">The specified RGB values are print targets; actual pillar colors vary by manufacturer and lighting. Use cv2.createTrackbar() during practice time to adjust thresholds live. Save final values as constants — never hard-code without field validation.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- §6 MORPHOLOGY -->
+    <div class="section" id="morphology">
+      <div class="section-header">
+        <span class="section-num">§06</span>
+        <h2>Morphological Operations</h2>
+      </div>
+
+      <p>Raw HSV masks are noisy — reflections off shiny pillars, light spill on white floor, and JPEG compression artifacts create thousands of false positive pixels. Morphological operations clean up the binary mask using structuring elements (kernels).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Effect</th><th>Use Case</th><th>OpenCV Call</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Erosion</td><td>Shrinks white regions</td><td>Kill tiny noise blobs</td><td>cv2.erode()</td></tr>
+            <tr><td>Dilation</td><td>Grows white regions</td><td>Fill gaps in pillar mask</td><td>cv2.dilate()</td></tr>
+            <tr><td>Opening</td><td>Erode then Dilate</td><td>Remove isolated salt noise</td><td>MORPH_OPEN</td></tr>
+            <tr><td>Closing</td><td>Dilate then Erode</td><td>Fill holes inside pillar</td><td>MORPH_CLOSE</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Morphological Cleanup</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="kw">def</span> <span class="fn">clean_mask</span>(<span class="var">mask</span>, <span class="var">kernel_size</span>=<span class="num">5</span>):
+    <span class="var">k</span> = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (<span class="var">kernel_size</span>, <span class="var">kernel_size</span>)
+    )
+    <span class="cmt"># Step 1: Opening — eliminate salt-and-pepper noise</span>
+    <span class="var">mask</span> = cv2.morphologyEx(<span class="var">mask</span>, cv2.MORPH_OPEN,  <span class="var">k</span>)
+    <span class="cmt"># Step 2: Closing — seal internal holes in pillar blob</span>
+    <span class="var">mask</span> = cv2.morphologyEx(<span class="var">mask</span>, cv2.MORPH_CLOSE, <span class="var">k</span>)
+    <span class="kw">return</span> <span class="var">mask</span>
+
+<span class="cmt"># Larger kernel = more aggressive cleaning, but risks eating thin detections</span>
+<span class="cmt"># Recommended: kernel_size 3 (fast), 5 (balanced), 7 (heavy noise)</span></pre>
+      </div>
+    </div>
+
+    <!-- §7 CONTOURS -->
+    <div class="section" id="contours">
+      <div class="section-header">
+        <span class="section-num">§07</span>
+        <h2>Contour Detection &amp; Bounding Boxes</h2>
+      </div>
+
+      <p>After cleaning the mask, contour detection extracts the mathematical boundaries of each blob. From the contours we derive all geometric properties needed for distance and angle estimation.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Full Contour Pipeline</span>
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        </div>
+        <pre><span class="kw">def</span> <span class="fn">detect_objects</span>(<span class="var">mask</span>, <span class="var">min_area</span>=<span class="num">300</span>, <span class="var">label</span>=<span class="str">"unknown"</span>):
+    <span class="var">contours</span>, _ = cv2.findContours(
+        <span class="var">mask</span>,
+        cv2.RETR_EXTERNAL,       <span class="cmt"># only outer boundaries</span>
+        cv2.CHAIN_APPROX_SIMPLE  <span class="cmt"># compress to corners only (faster)</span>
+    )
+
+    <span class="var">objects</span> = []
+    <span class="kw">for</span> <span class="var">cnt</span> <span class="kw">in</span> <span class="var">contours</span>:
+        <span class="var">area</span> = cv2.contourArea(<span class="var">cnt</span>)
+        <span class="kw">if</span> <span class="var">area</span> &lt; <span class="var">min_area</span>:
+            <span class="kw">continue</span>  <span class="cmt"># filter out micro-noise</span>
+
+        <span class="var">x</span>, <span class="var">y</span>, <span class="var">w</span>, <span class="var">h</span> = cv2.boundingRect(<span class="var">cnt</span>)
+        <span class="var">cx</span> = <span class="var">x</span> + <span class="var">w</span> // <span class="num">2</span>         <span class="cmt"># horizontal center</span>
+        <span class="var">cy</span> = <span class="var">y</span> + <span class="var">h</span> // <span class="num">2</span>         <span class="cmt"># vertical center</span>
+        <span class="var">aspect</span> = <span class="var">w</span> / (<span class="var">h</span> + <span class="num">1e-6</span>) <span class="cmt"># pillar should be ~0.5 (tall)</span>
+
+        <span class="cmt"># Reject wide blobs (likely floor reflections, not pillars)</span>
+        <span class="kw">if</span> <span class="var">aspect</span> &gt; <span class="num">2.5</span>:
+            <span class="kw">continue</span>
+
+        <span class="var">objects</span>.append({
+            <span class="str">"label"</span>:  <span class="var">label</span>,
+            <span class="str">"x"</span>: <span class="var">x</span>, <span class="str">"y"</span>: <span class="var">y</span>, <span class="str">"w"</span>: <span class="var">w</span>, <span class="str">"h"</span>: <span class="var">h</span>,
+            <span class="str">"cx"</span>: <span class="var">cx</span>, <span class="str">"cy"</span>: <span class="var">cy</span>,
+            <span class="str">"area"</span>: <span class="var">area</span>,
+            <span class="str">"aspect"</span>: <span class="var">aspect</span>,
+        })
+
+    <span class="cmt"># Return largest object first (closest pillar = largest bbox)</span>
+    <span class="kw">return</span> sorted(<span class="var">objects</span>, key=<span class="kw">lambda</span> <span class="var">o</span>: <span class="var">o</span>[<span class="str">"area"</span>], reverse=<span class="num">True</span>)</pre>
+      </div>
+
+      <h3>Feature Extraction Summary</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Formula</th><th>Used For</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>area</td><td>cv2.contourArea(cnt)</td><td>Filtering noise, approximate depth</td></tr>
+            <tr><td>x, y</td><td>boundingRect top-left</td><td>Object screen position</td></tr>
+            <tr><td>w, h</td><td>boundingRect size</td><td>Distance estimation via similar triangles</td></tr>
+            <tr><td>cx</td><td>x + w/2</td><td>Lateral angle → steering error</td></tr>
+            <tr><td>aspect</td><td>w / h</td><td>Pillar validation (should be tall, not wide)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- §8 DISTANCE -->
+    <div class="section" id="distance">
+      <div class="section-header">
+        <span class="section-num">§08</span>
+        <h2>Distance Estimation via Similar Triangles</h2>
+      </div>
+
+      <p>WRO pillars have a known physical width of 50 mm (§13.19). Using the camera's focal length and the measured pixel width of the pil... (43 KB left)

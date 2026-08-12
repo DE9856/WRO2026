@@ -1,0 +1,14 @@
+# WRO2026 — Raspberry Pi requirements
+#
+# camera/capture.py talks to the Logitech C270 through OpenCV's
+# VideoCapture + V4L2 backend (it's a standard USB UVC webcam), so
+# picamera2 is NOT needed and is intentionally left out of this file.
+#
+# opencv-python is pinned to a headless-friendly range; if you hit GUI/Qt
+# issues with cv2.imshow() on a fresh Pi OS Lite install, install
+# opencv-python-headless instead, or apt install the missing Qt/GTK libs
+# (e.g. `sudo apt install -y libgtk-3-0 libqt5gui5` on Bullseye/Bookworm).
+
+numpy>=1.24,<3.0
+opencv-python>=4.8,<5.0
+pyserial>=3.5,<4.0
